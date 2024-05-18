@@ -1,18 +1,18 @@
 package org.example.onlinechessgame.controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.example.onlinechessgame.Board;
 import org.example.onlinechessgame.Tile;
+import org.example.onlinechessgame.model.Move;
+import org.example.onlinechessgame.model.client.Client;
 import org.example.onlinechessgame.pieces.Piece;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -26,6 +26,25 @@ public class ChessBoardController implements Initializable {
     private Piece selectedPiece = null;
     private Tile lastMoveStart = null;
     private Tile lastMoveEnd = null;
+    private Client client;
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Khởi tạo bàn cờ
+        Board board = new Board();
+        setBoard(board);
+
+        // Kết nối với server
+        client = new Client("localhost", 12345, this);
+        try {
+            client.connectToServer();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Xử lý sự kiện click chuột vào ô cờ
+        gridPane.setOnMouseClicked(this::handleMouseClick);
+    }
 
     public void setBoard(Board board) {
         this.board = board;
@@ -36,7 +55,6 @@ public class ChessBoardController implements Initializable {
             for (int col = 0; col < 8; col++) {
                 Tile tile = board.getTile(row, col);
                 gridPane.add(tile, col, row); // Thêm Tile (StackPane) vào GridPane
-
             }
         }
 
@@ -44,15 +62,6 @@ public class ChessBoardController implements Initializable {
         board.initializePieces();
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // Khởi tạo bàn cờ (ví dụ)
-        Board board = new Board();
-        setBoard(board);
-
-        // Xử lý sự kiện click chuột vào ô cờ
-        gridPane.setOnMouseClicked(this::handleMouseClick);
-    }
 
     private void handleMouseClick(MouseEvent event) {
         int col = (int) (event.getX() / 100);
@@ -106,6 +115,13 @@ public class ChessBoardController implements Initializable {
 
                     // Highlight nước đi vừa thực hiện
                     highlightMoved(selectedTile, clickedTile);
+
+                    try {
+                        client.movePiece(createMove(selectedTile, clickedTile));
+                        System.out.println("Sent move to server! "+createMove(selectedTile, clickedTile).toString());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                     // Nước đi không hợp lệ, bỏ chọn quân cờ
                 clearHighlightsPossibleMoves();
@@ -166,5 +182,23 @@ public class ChessBoardController implements Initializable {
         return possibleMoves.contains(destinationTile);
     }
 
+    public void matching(){
+        try {
+            client.requestMatchmaking();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    private Move createMove(Tile selectedTile, Tile clickedTile) {
+        return new Move(selectedTile.getRow(), selectedTile.getCol(), clickedTile.getRow(), clickedTile.getCol());
+    }
+    public void movePiece(Move move) {
+        Platform.runLater(() -> {
+            Tile startTile = board.getTile(move.getStartRow(), move.getStartCol());
+            Tile endTile = board.getTile(move.getEndRow(), move.getEndCol());
+            board.movePiece(startTile.getPiece(), endTile);
+            highlightMoved(startTile, endTile);
+        });
+    }
 }

@@ -8,7 +8,12 @@ import javafx.stage.StageStyle;
 import org.example.onlinechessgame.controllers.PromotePawnController;
 import org.example.onlinechessgame.pieces.*;
 
-public class Board {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class Board implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private GridPane gridPane;
     private Tile[][] board;
     private Tile enPassantTargetTile;

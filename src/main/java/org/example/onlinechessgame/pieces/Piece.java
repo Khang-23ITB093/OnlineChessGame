@@ -7,9 +7,13 @@ import org.example.onlinechessgame.Board;
 import org.example.onlinechessgame.ChessApp;
 import org.example.onlinechessgame.Tile;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class Piece extends ImageView {
+public abstract class Piece extends ImageView implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private int row,col;
     private PieceType type;
     private boolean isWhite;

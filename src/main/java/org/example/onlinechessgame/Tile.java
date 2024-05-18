@@ -6,7 +6,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import org.example.onlinechessgame.pieces.Piece;
 
-public class Tile extends StackPane {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class Tile extends StackPane implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private Piece piece;
     private int row, col;
     private boolean isLight;
