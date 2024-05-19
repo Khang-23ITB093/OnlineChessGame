@@ -23,6 +23,6 @@ public class Message implements Serializable {
     }
 
     public enum MessageType {
-        CONNECT, DISCONNECT, MOVE, MATCH, ERROR
+        CONNECT, DISCONNECT, MOVE, MATCH, ERROR, PROMOTE
     }
 }

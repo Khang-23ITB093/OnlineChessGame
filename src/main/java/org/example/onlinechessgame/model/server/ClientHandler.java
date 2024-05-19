@@ -29,14 +29,23 @@ public class ClientHandler implements Runnable{
 
             while (true) {
                 Message message = (Message) ois.readObject();
-                if (message.getType() == Message.MessageType.MOVE) {
-                    System.out.println("Received move from client!" + message.getData().toString());
-                    // Truyền object Board đến đối thủ
-                    opponent.sendMessage(message);
-                }
-                if (message.getType() == Message.MessageType.MATCH) {
-                    server.addWaitingPlayer(this);
-                    System.out.println("Player added to waiting list");
+                switch (message.getType()) {
+                    case MOVE -> {
+                        System.out.println("Received move from client!" + message.getData().toString());
+                        // Truyền object Board đến đối thủ
+                        opponent.sendMessage(message);
+                    }
+
+                    case MATCH ->  {
+                        server.addWaitingPlayer(this);
+                        System.out.println("Player added to waiting list");
+                    }
+
+                    case PROMOTE -> {
+                        System.out.println("Received promote from client!" + message.getData().toString());
+                        // Truyền object Board đến đối thủ
+                        opponent.sendMessage(message);
+                    }
                 }
             }
         } catch (IOException | ClassNotFoundException e) {

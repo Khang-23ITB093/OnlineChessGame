@@ -14,7 +14,7 @@ public class King extends Piece{
     @Override
     public List<Tile> getPossibleMoves(Board board, Tile currentTile) {
         List<Tile> possibleMoves = new ArrayList<>();
-        List<Tile> opponentMoves = getOpponentMoves(board, currentTile);
+        List<Tile> opponentMoves = getOpponentMoves(board);
         int[][] offsets = {
                 {-1, -1}, {-1, 0}, {-1, 1},
                 {0, -1}, {0, 1},
@@ -25,7 +25,7 @@ public class King extends Piece{
             int row = currentTile.getRow() + offset[0];
             int col = currentTile.getCol() + offset[1];
 
-            if (isValidMove(board, currentTile, row, col)) {
+            if (isValidMove(board, row, col)) {
                     possibleMoves.add(board.getTile(row, col));
             }
         }
@@ -74,11 +74,7 @@ public class King extends Piece{
     }
 
     // Helper method to check if a tile is threatened
-    private List<Tile> getOpponentMoves(Board board, Tile tile) {
-        // Lấy vị trí của vua
-        int kingRow = tile.getRow();
-        int kingCol = tile.getCol();
-
+    private List<Tile> getOpponentMoves(Board board) {
         // Lấy danh sách các nước đi của các quân cờ đối phương
         List<Tile> opponentMoves = new ArrayList<>();
         for (int row = 0; row < 8; row++) {
@@ -86,12 +82,10 @@ public class King extends Piece{
                 Tile current = board.getTile(row, col);
                 if (current.hasPiece() && current.getPiece().isWhite() != isWhite()) {
                     List<Tile> moves;
-                    if (current.getPiece().getType() == PieceType.PAWN)
-                        moves = ((Pawn) current.getPiece()).getDiagnolMoves(board, current);
-                    else if (current.getPiece().getType() == PieceType.KING) {
+                    if (current.getPiece().getType() == PieceType.KING) {
                         moves = ((King) current.getPiece()).getPossibleMovesNonThreatened(board, current);
                     } else
-                        moves = current.getPiece().getPossibleMoves(board, current);
+                        moves = current.getPiece().getPossibleCaptureMoves(board, current);
 
                     opponentMoves.addAll(moves);
                 }
@@ -114,7 +108,7 @@ public class King extends Piece{
             int row = currentTile.getRow() + offset[0];
             int col = currentTile.getCol() + offset[1];
 
-            if (isValidMove(board, currentTile, row, col)) {
+            if (isValidMove(board, row, col)) {
                     possibleMoves.add(board.getTile(row, col));
             }
         }
@@ -124,6 +118,30 @@ public class King extends Piece{
             // Check for castling on both sides (kingside and queenside)
             possibleMoves.add(checkCastling(board, currentTile, 7)); // Kingside
             possibleMoves.add(checkCastling(board, currentTile, 0 )); // Queenside
+        }
+
+        return possibleMoves;
+    }
+
+    @Override
+    public List<Tile> getPossibleCaptureMoves(Board board, Tile currentTile) {
+        List<Tile> possibleMoves = new ArrayList<>();
+
+        int[][] offsets = {
+                {-1, -1}, {-1, 0}, {-1, 1},
+                {0, -1}          , {0, 1},
+                {1, -1} , {1, 0} , {1, 1}
+        };
+
+        for (int[] offset : offsets) {
+            int row = currentTile.getRow() + offset[0];
+            int col = currentTile.getCol() + offset[1];
+
+            if (isValidCapture(board, row, col)) {
+                possibleMoves.add(board.getTile(row, col));
+            }else if (board.getTile(row, col).hasPiece()){
+                possibleMoves.add(board.getTile(row, col));
+            }
         }
 
         return possibleMoves;

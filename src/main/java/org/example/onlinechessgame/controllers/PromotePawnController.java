@@ -9,6 +9,8 @@ import javafx.stage.Stage;
 import org.example.onlinechessgame.Board;
 import org.example.onlinechessgame.ChessApp;
 import org.example.onlinechessgame.Tile;
+import org.example.onlinechessgame.model.Move;
+import org.example.onlinechessgame.model.client.Client;
 import org.example.onlinechessgame.pieces.Piece;
 import org.example.onlinechessgame.pieces.PieceType;
 
@@ -30,10 +32,14 @@ public class PromotePawnController implements Initializable {
 
     private Board board;
     private Tile pawnTile;
+    private Client client;
+    private Move move;
 
-    public void setup(Board board, Tile pawnTile) {
-        this.pawnTile = pawnTile;
+    public void setup(Board board, Move move, Client client) {
+        this.move = move;
+        this.pawnTile = board.getTile(move.getEndRow(), move.getEndCol());
         this.board = board;
+        this.client = client;
         displayPromotionOptions(pawnTile);
     }
 
@@ -57,22 +63,34 @@ public class PromotePawnController implements Initializable {
     public void promoteToKnight(){
         board.promotePawn(pawnTile, PieceType.KNIGHT);
         board.setPiece(pawnTile.getPiece(), pawnTile.getRow(), pawnTile.getCol());
+        sendPromotePieceMessage(pawnTile);
         exit();
     }
     public void promoteToBishop(){
         board.promotePawn(pawnTile, PieceType.BISHOP);
         board.setPiece(pawnTile.getPiece(), pawnTile.getRow(), pawnTile.getCol());
+        sendPromotePieceMessage(pawnTile);
         exit();
     }
     public void promoteToQueen(){
         board.promotePawn(pawnTile, PieceType.QUEEN);
         board.setPiece(pawnTile.getPiece(), pawnTile.getRow(), pawnTile.getCol());
+        sendPromotePieceMessage(pawnTile);
         exit();
     }
     public void promoteToRook() {
         board.promotePawn(pawnTile, PieceType.ROOK);
         board.setPiece(pawnTile.getPiece(), pawnTile.getRow(), pawnTile.getCol());
+        sendPromotePieceMessage(pawnTile);
         exit();
+    }
+    private void sendPromotePieceMessage(Tile pawnTile) {
+        try {
+            client.movePiece(move);
+            client.promotePiece(pawnTile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     public void exit() {
         Stage stage = (Stage)knightButton.getScene().getWindow();

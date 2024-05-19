@@ -2,15 +2,22 @@ package org.example.onlinechessgame.controllers;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.example.onlinechessgame.Board;
 import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.model.Move;
 import org.example.onlinechessgame.model.client.Client;
+import org.example.onlinechessgame.pieces.Pawn;
 import org.example.onlinechessgame.pieces.Piece;
+import org.example.onlinechessgame.pieces.PieceType;
 
 import java.io.IOException;
 import java.net.URL;
@@ -27,6 +34,9 @@ public class ChessBoardController implements Initializable {
     private Tile lastMoveStart = null;
     private Tile lastMoveEnd = null;
     private Client client;
+
+    private boolean isMyTurn = false;
+    private boolean playerColor;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -77,10 +87,10 @@ public class ChessBoardController implements Initializable {
         }
 
         // 2. Xử lý chọn/bỏ chọn quân cờ
-        if (selectedPiece == null) {
             // Chưa có quân cờ nào được chọn
-            if (clickedTile.hasPiece() && clickedTile.getPiece().isWhite() == board.isWhiteTurn()) {
+        if (selectedPiece == null) {
                 // Click vào quân cờ của người chơi hiện tại, chọn quân cờ
+            if (clickedTile.hasPiece() && clickedTile.getPiece().isWhite() == board.isWhiteTurn() && clickedTile.getPiece().isWhite() == playerColor) {
                 selectedPiece = clickedTile.getPiece();
                 selectedTile = clickedTile;
                 highlightPossibleMoves(selectedPiece);
@@ -109,19 +119,30 @@ public class ChessBoardController implements Initializable {
             } else {
                 // Click vào ô khác
                 // 3. Xử lý di chuyển quân cờ
-                if (isValidMove(selectedPiece, clickedTile)) {
+                if (isMyTurn && isValidMove(selectedPiece, clickedTile)) {
+
+
                     // Nước đi hợp lệ, di chuyển quân cờ
                     board.movePiece(selectedPiece, clickedTile);
+                    //Pawn promotion
+                    if (clickedTile!= null && clickedTile.getPiece().getType() == PieceType.PAWN && (clickedTile.getRow() == 0 || clickedTile.getRow() == 7)) {
+                        if (isMyTurn) showPromotionPopup(createMove(selectedTile, clickedTile));
+                    }
+                    else {
+                        // Gửi nước đi đến server
+                        try {
+                            client.movePiece(createMove(selectedTile, clickedTile));
+                            System.out.println("Sent move to server! "+createMove(selectedTile, clickedTile).toString());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
 
                     // Highlight nước đi vừa thực hiện
                     highlightMoved(selectedTile, clickedTile);
 
-                    try {
-                        client.movePiece(createMove(selectedTile, clickedTile));
-                        System.out.println("Sent move to server! "+createMove(selectedTile, clickedTile).toString());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    // Đánh dấu đã di chuyển quân cờ
+                    isMyTurn = false;
                 }
                     // Nước đi không hợp lệ, bỏ chọn quân cờ
                 clearHighlightsPossibleMoves();
@@ -182,6 +203,24 @@ public class ChessBoardController implements Initializable {
         return possibleMoves.contains(destinationTile);
     }
 
+    private void showPromotionPopup(Move move) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/onlinechessgame/controllers/promotePawn.fxml"));
+            Stage popup = new Stage();
+            Scene scene = new Scene(loader.load());
+            popup.setScene(scene);
+            popup.setResizable(false);
+            popup.initStyle(StageStyle.TRANSPARENT);
+            popup.initModality(Modality.APPLICATION_MODAL);
+            ((PromotePawnController)loader.getController()).setup(board, move, client);
+
+
+            popup.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void matching(){
         try {
             client.requestMatchmaking();
@@ -190,15 +229,24 @@ public class ChessBoardController implements Initializable {
         }
     }
 
+    public void startGame(boolean color){
+        playerColor = color;
+        isMyTurn = color;
+    }
     private Move createMove(Tile selectedTile, Tile clickedTile) {
         return new Move(selectedTile.getRow(), selectedTile.getCol(), clickedTile.getRow(), clickedTile.getCol());
     }
-    public void movePiece(Move move) {
+    public void opponentMovePiece(Move move) {
         Platform.runLater(() -> {
             Tile startTile = board.getTile(move.getStartRow(), move.getStartCol());
             Tile endTile = board.getTile(move.getEndRow(), move.getEndCol());
             board.movePiece(startTile.getPiece(), endTile);
             highlightMoved(startTile, endTile);
+            isMyTurn = true;
         });
+    }
+
+    public Board getBoard() {
+        return board;
     }
 }

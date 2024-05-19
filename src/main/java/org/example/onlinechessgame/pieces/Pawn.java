@@ -47,6 +47,20 @@ public class Pawn extends Piece{
         return possibleMoves;
     }
 
+    @Override
+    public List<Tile> getPossibleCaptureMoves(Board board, Tile currentTile) {
+        List<Tile> possibleCapture = new ArrayList<>();
+        int direction = isWhite() ? -1 : 1;
+        int[] diagonalOffsets = {-1, 1};
+        for (int offset : diagonalOffsets) {
+            Tile diagonalTile = board.getTile(currentTile.getRow() + direction, currentTile.getCol() + offset);
+            if (diagonalTile != null) {
+                possibleCapture.add(diagonalTile);
+            }
+        }
+        return possibleCapture;
+    }
+
     public Piece promotePawn(PieceType promotionType) {
         if (promotionType == PieceType.PAWN || promotionType == PieceType.KING)
         {

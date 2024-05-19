@@ -46,7 +46,6 @@ public class Server {
             player1.setOpponent(player2);
             player2.setOpponent(player1);
 
-            System.out.println("Dang gui");
             player1.sendMessage(new Message(Message.MessageType.MATCH, "WHITE"));
             player2.sendMessage(new Message(Message.MessageType.MATCH, "BLACK"));;
         }

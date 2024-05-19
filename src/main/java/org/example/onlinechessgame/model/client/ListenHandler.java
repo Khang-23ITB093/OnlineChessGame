@@ -1,8 +1,11 @@
 package org.example.onlinechessgame.model.client;
 
+import javafx.application.Platform;
+import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.controllers.ChessBoardController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
+import org.example.onlinechessgame.pieces.PieceType;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -29,13 +32,13 @@ public class ListenHandler implements Runnable {
             while (true){
                 try {
                     Message message = (Message) ois.readObject();
-                    System.out.println("Received message from opponent!"+ message.getType().toString());
+                    System.out.println("Received message from Server!"+ message.getType().toString());
                     switch (message.getType()){
                         case Message.MessageType.MOVE:
                             System.out.println("Received move from opponent!");
                             data = message.getData();
                             if (data instanceof Move)
-                                controller.movePiece((Move) data);
+                                controller.opponentMovePiece((Move) data);
                             else System.out.println("Invalid data type");
                             break;
 
@@ -48,7 +51,21 @@ public class ListenHandler implements Runnable {
                             break;
 
                         case Message.MessageType.MATCH:
-                            System.out.println("Match found! You are playing as " + message.getData().toString());
+                            // Start game & set color
+                            System.out.println("Match found! You play as " + message.getData().toString());
+                            controller.startGame(message.getData().equals("WHITE"));
+                            break;
+
+                        case Message.MessageType.PROMOTE:
+                            System.out.println("Received promote from opponent!");
+                            data = message.getData();
+                            if (data instanceof Tile) {
+                                Platform.runLater(() ->{
+                                    controller.getBoard().promotePawn((Tile)data, ((Tile) data).getPiece().getType());
+                                    controller.getBoard().setPiece(((Tile) data).getPiece(), ((Tile) data).getRow(), ((Tile) data).getCol());
+                                });
+                            }
+                            else System.out.println("Invalid data type");
                             break;
                         default:
                             System.out.println("Invalid message type" + message.getType() + message.getData().toString());

@@ -1,13 +1,16 @@
 package org.example.onlinechessgame.model.client;
 
 import org.example.onlinechessgame.Board;
+import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.controllers.ChessBoardController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
+import org.example.onlinechessgame.pieces.PieceType;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.*;
 import java.net.Socket;
 
 public class Client {
@@ -40,10 +43,15 @@ public class Client {
         oos.writeObject(new Message(Message.MessageType.MOVE, move));
     }
 
+    public void promotePiece(Tile pawnTile) throws IOException {
+        // ... gửi nước đi của mình đến opponent ...
+        oos.writeObject(new Message(Message.MessageType.PROMOTE, pawnTile));
+    }
     public void disconnectFromServer() throws IOException {
         // ... gửi thông báo ngắt kết nối đến server ...
         oos.writeObject(new Message(Message.MessageType.DISCONNECT, null));
         socket.close();
     }
+
 
 }

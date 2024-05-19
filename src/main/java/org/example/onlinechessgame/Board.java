@@ -3,6 +3,7 @@ package org.example.onlinechessgame;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.example.onlinechessgame.controllers.PromotePawnController;
@@ -109,12 +110,6 @@ public class Board implements Serializable {
             whiteTurn = !whiteTurn;
         }
 
-        //Pawn promotion
-        if (piece instanceof Pawn && (destination.getRow() == 0 || destination.getRow() == 7)) {
-            showPromotionPopup(destination);
-        }
-
-
         // Reset enPassantTargetTile sau mỗi nước đi
         whiteTurn = !whiteTurn; // Đổi lượt chơi
     }
@@ -157,28 +152,17 @@ public class Board implements Serializable {
             return;
         gridPane.getChildren().remove(destination.getPiece());
         destination.setPiece(null);
+
     }
 
-    private void showPromotionPopup(Tile pawnTile) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/onlinechessgame/controllers/promotePawn.fxml"));
-            Stage popup = new Stage();
-            Scene scene = new Scene(loader.load());
-            popup.setScene(scene);
-            popup.setResizable(false);
-            popup.initStyle(StageStyle.TRANSPARENT);
 
-            ((PromotePawnController)loader.getController()).setup(this, pawnTile);
-
-
-            popup.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     public void promotePawn(Tile pawnTile, PieceType promotionType) {
-        Piece promotedPiece = ((Pawn) pawnTile.getPiece()).promotePawn(promotionType);
-        deletePiece(pawnTile);
+        Piece promotedPiece = null;
+        Tile currentTile = getTile(pawnTile.getRow(), pawnTile.getCol());
+        if (currentTile.getPiece() instanceof Pawn)
+            promotedPiece = ((Pawn)currentTile.getPiece()).promotePawn(promotionType);
+        else promotedPiece = pawnTile.getPiece();
+        deletePiece(currentTile);
         pawnTile.setPiece(promotedPiece);
         gridPane.add(promotedPiece, pawnTile.getCol(), pawnTile.getRow());
     }

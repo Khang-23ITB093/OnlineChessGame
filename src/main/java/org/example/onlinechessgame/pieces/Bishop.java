@@ -21,7 +21,7 @@ public class Bishop extends Piece{
             int newRow = currentTile.getRow() + direction[0];
             int newCol = currentTile.getCol() + direction[1];
 
-            while (isValidMove(board, currentTile, newRow, newCol)) {
+            while (isValidMove(board, newRow, newCol)) {
                 possibleMoves.add(board.getTile(newRow, newCol));
 
                 Tile destinationTile = board.getTile(newRow, newCol);
@@ -32,6 +32,28 @@ public class Bishop extends Piece{
                 newRow += direction[0];
                 newCol += direction[1];
             }
+        }
+
+        return possibleMoves;
+    }
+
+    @Override
+    public List<Tile> getPossibleCaptureMoves(Board board, Tile currentTile) {
+        List<Tile> possibleMoves = new ArrayList<>();
+        int[][] DIRECTIONS = {
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
+        };
+        for (int[] direction : DIRECTIONS) {
+            int newRow = currentTile.getRow() + direction[0];
+            int newCol = currentTile.getCol() + direction[1];
+            while (isValidCapture(board, newRow, newCol)) {
+                possibleMoves.add(board.getTile(newRow, newCol));
+
+                newRow += direction[0];
+                newCol += direction[1];
+            }
+            // Nếu ô đích có quân cờ
+            possibleMoves.add(board.getTile(newRow, newCol));
         }
 
         return possibleMoves;
