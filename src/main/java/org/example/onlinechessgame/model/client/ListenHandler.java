@@ -2,10 +2,10 @@ package org.example.onlinechessgame.model.client;
 
 import javafx.application.Platform;
 import org.example.onlinechessgame.Tile;
-import org.example.onlinechessgame.controllers.ChessBoardController;
+import org.example.onlinechessgame.controllers.LoginController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
-import org.example.onlinechessgame.pieces.PieceType;
+import org.example.onlinechessgame.model.User;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,11 +15,14 @@ public class ListenHandler implements Runnable {
     private Socket socket;
     private ObjectInputStream ois;
     private Object data;
-    private ChessBoardController controller;
+    private LoginController loginController;
+    private Client client;
+    private boolean running = true;
 
-    public ListenHandler(Socket socket, ChessBoardController controller) {
+    public ListenHandler(Socket socket,Client client ,LoginController loginController) {
         this.socket = socket;
-        this.controller = controller;
+        this.client = client;
+        this.loginController = loginController;
         try {
             ois = new ObjectInputStream(socket.getInputStream());
         } catch (Exception e) {
@@ -29,7 +32,7 @@ public class ListenHandler implements Runnable {
     }
         @Override
         public void run() {
-            while (true){
+            while (running){
                 try {
                     Message message = (Message) ois.readObject();
                     System.out.println("Received message from Server!"+ message.getType().toString());
@@ -38,7 +41,7 @@ public class ListenHandler implements Runnable {
                             System.out.println("Received move from opponent!");
                             data = message.getData();
                             if (data instanceof Move)
-                                controller.opponentMovePiece((Move) data);
+                                client.getController().opponentMovePiece((Move) data);
                             else System.out.println("Invalid data type");
                             break;
 
@@ -46,14 +49,26 @@ public class ListenHandler implements Runnable {
                             socket.close();
                             break;
 
-                        case Message.MessageType.ERROR:
-                            System.out.println("Error: " + message.getData());
-                            break;
-
                         case Message.MessageType.MATCH:
+                            Platform.runLater(() -> {
+                                client.getHomeController().matchSuccess(message.getData().toString());
+                                client.getHomeController().hide();
+                            });
+                            if (client.getController() == null) {
+                                client.setController(client.getHomeController().getController());
+                                Platform.runLater(() -> {
+                                    client.getHomeController().hide();
+                                });
+                            }
                             // Start game & set color
                             System.out.println("Match found! You play as " + message.getData().toString());
-                            controller.startGame(message.getData().equals("WHITE"));
+                            break;
+
+                        case REMATCH:
+                            System.out.println("Received rematch request from opponent! " + message.getData().toString());
+                            Platform.runLater(() -> {
+                                client.getController().newGame(message.getData().toString().equals("WHITE"));
+                            });
                             break;
 
                         case Message.MessageType.PROMOTE:
@@ -61,18 +76,64 @@ public class ListenHandler implements Runnable {
                             data = message.getData();
                             if (data instanceof Tile) {
                                 Platform.runLater(() ->{
-                                    controller.getBoard().promotePawn((Tile)data, ((Tile) data).getPiece().getType());
-                                    controller.getBoard().setPiece(((Tile) data).getPiece(), ((Tile) data).getRow(), ((Tile) data).getCol());
+                                    client.getController().getBoard().promotePawn((Tile)data, ((Tile) data).getPiece().getType());
+                                    client.getController().getBoard().setPiece(((Tile) data).getPiece(), ((Tile) data).getRow(), ((Tile) data).getCol());
                                 });
                             }
                             else System.out.println("Invalid data type");
                             break;
+
+                        case LOGIN:
+                            System.out.println("Login successful!");
+                            Platform.runLater(() -> loginController.loginSuccess());
+                            break;
+
+                        case LOGIN_FAILED:
+                            System.out.println("Login failed!");
+                            loginController.loginFailed();
+                            break;
+
+                        case QUICK_LOGIN:
+                            System.out.println("Quick login successful!");
+                            Platform.runLater(() -> loginController.loginSuccess());
+                            break;
+
+                        case QUICK_LOGIN_FAILED:
+                            System.out.println("Quick login failed!");
+                            loginController.loginFailed();
+                            break;
+                        case REGISTER:
+                            System.out.println("Register successful!");
+                            Platform.runLater(() -> loginController.loginSuccess());
+                            break;
+
+                        case REGISTER_FAILED:
+                            System.out.println("Register failed!");
+                            loginController.registerFailed();
+                            break;
+
+                        case INFORMATION_MATCH:
+                            System.out.println("Information match!");
+                            User[] users = (User[]) message.getData();
+                            Platform.runLater(() -> client.getController().setInformationPlayers(users[0], users[1]));
+                            break;
+
+                        case LOSE:
+                            System.out.println("You lose!");
+                            Platform.runLater(() -> client.getController().losing());
+                            break;
+
+                        case WIN:
+                            System.out.println("You win!");
+                            Platform.runLater(() -> client.getController().winning());
+                            break;
+
                         default:
                             System.out.println("Invalid message type" + message.getType() + message.getData().toString());
 
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    running = false;
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }

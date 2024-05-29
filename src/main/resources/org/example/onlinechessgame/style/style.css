@@ -1,0 +1,71 @@
+.TextField{
+    -fx-background-color:  #3b3a38;
+    -fx-background-radius: 5px;
+    -fx-pref-height: 38px;
+    -fx-pref-width: 271px;
+    -fx-text-fill: white;
+}
+
+.button-Login{
+    -fx-background-color:  green;
+    -fx-border-radius: 15px;
+    -fx-text-fill: white;
+    -fx-pref-height: 55px;
+    -fx-pref-width: 260px;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 15px;
+}
+.button-Login:hover{
+    -fx-background-color:  #81b64c;
+}
+.warning-label{
+    -fx-text-fill: red;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+.Hbox{
+    -fx-border-color: black;
+    -fx-border-width: 0px 0px 1px 0px;
+    -fx-border-style: solid;
+}
+.Hbox > Label{
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+*{
+    -fx-opacity: 0.9;
+}
+*:hover{
+    -fx-opacity: 1;
+}
+/* styles.css */
+.text-area {
+    -fx-text-fill: #ffffff;
+    -fx-control-inner-background:  #262522;
+    -fx-opacity: 1;
+}
+.text-area *{
+    -fx-opacity: 1;
+    -fx-text-fill: white;
+}
+.text-field{
+    -fx-text-fill: #ffffff;
+    -fx-opacity: 1;
+}
+.log-out{
+    -fx-opacity: 1;
+    -fx-background-color: black;
+    -fx-background-radius: 10px;
+    -fx-text-fill: white;
+}
+.log-out *{
+    -fx-opacity: 1;
+}
+.log-out:hover{
+    -fx-background-color: red;
+}
+.log-out:pressed{
+    -fx-text-fill: black;
+}

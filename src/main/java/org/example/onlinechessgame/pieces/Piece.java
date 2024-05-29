@@ -11,9 +11,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
-public abstract class Piece extends ImageView implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
+public abstract class Piece extends ImageView{
     private int row,col;
     private PieceType type;
     private boolean isWhite;
@@ -79,9 +77,8 @@ public abstract class Piece extends ImageView implements Serializable {
     }
 
     public boolean isValidCapture(Board board, int newRow, int newCol){
-        if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8) {
+        if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8)
             return false; // Ô nằm ngoài bàn cờ
-        }
         Tile destinationTile = board.getTile(newRow, newCol);
         return !destinationTile.hasPiece();
     }

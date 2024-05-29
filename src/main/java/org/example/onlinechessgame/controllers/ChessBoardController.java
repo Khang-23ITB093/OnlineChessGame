@@ -5,17 +5,19 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.example.onlinechessgame.Board;
 import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.model.Move;
+import org.example.onlinechessgame.model.User;
 import org.example.onlinechessgame.model.client.Client;
-import org.example.onlinechessgame.pieces.Pawn;
 import org.example.onlinechessgame.pieces.Piece;
 import org.example.onlinechessgame.pieces.PieceType;
 
@@ -27,12 +29,23 @@ import java.util.ResourceBundle;
 public class ChessBoardController implements Initializable {
     @FXML
     private GridPane gridPane;
+    @FXML
+    private Pane resultPane;
+    @FXML
+    private Label namePlayer1Label;
+    @FXML
+    private Label namePlayer2Label;
+    @FXML
+    private Label winnerLabel;
+    @FXML
+    private Pane waitingPane;
 
     private Board board;
     private Tile selectedTile = null;
     private Piece selectedPiece = null;
     private Tile lastMoveStart = null;
     private Tile lastMoveEnd = null;
+    private HomeController homeController;
     private Client client;
 
     private boolean isMyTurn = false;
@@ -43,14 +56,6 @@ public class ChessBoardController implements Initializable {
         // Khởi tạo bàn cờ
         Board board = new Board();
         setBoard(board);
-
-        // Kết nối với server
-        client = new Client("localhost", 12345, this);
-        try {
-            client.connectToServer();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         // Xử lý sự kiện click chuột vào ô cờ
         gridPane.setOnMouseClicked(this::handleMouseClick);
@@ -122,6 +127,10 @@ public class ChessBoardController implements Initializable {
                 if (isMyTurn && isValidMove(selectedPiece, clickedTile)) {
 
 
+                    // Checkmate
+                    if (clickedTile.hasPiece() && clickedTile.getPiece().getType() == PieceType.KING && selectedTile.getPiece().isWhite() != clickedTile.getPiece().isWhite()){
+                        winning();
+                    }
                     // Nước đi hợp lệ, di chuyển quân cờ
                     board.movePiece(selectedPiece, clickedTile);
                     //Pawn promotion
@@ -221,17 +230,22 @@ public class ChessBoardController implements Initializable {
         }
     }
 
-    public void matching(){
-        try {
-            client.requestMatchmaking();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public void startGame(boolean color){
         playerColor = color;
         isMyTurn = color;
+        board.setWhiteTurn(true);
+    }
+
+    public void setInformationPlayers(User player, User opponent){
+        if (playerColor){
+            //White
+            namePlayer1Label.setText(player.getUsername());
+            namePlayer2Label.setText(opponent.getUsername());
+        } else {
+            //Black
+            namePlayer1Label.setText(opponent.getUsername());
+            namePlayer2Label.setText(player.getUsername());
+        }
     }
     private Move createMove(Tile selectedTile, Tile clickedTile) {
         return new Move(selectedTile.getRow(), selectedTile.getCol(), clickedTile.getRow(), clickedTile.getCol());
@@ -248,5 +262,81 @@ public class ChessBoardController implements Initializable {
 
     public Board getBoard() {
         return board;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+        client.setController(this);
+    }
+
+    public void winning(){
+        resultPane.setVisible(true);
+        winnerLabel.setText((playerColor ? namePlayer1Label.getText() : namePlayer2Label.getText()) + " Won!");
+        try {
+            System.out.println("Sent win to server!");
+            client.winGame();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void losing(){
+        resultPane.setVisible(true);
+        isMyTurn = false;
+        winnerLabel.setText((!playerColor ? namePlayer1Label.getText() : namePlayer2Label.getText()) + " Won!");
+    }
+
+    public void setHomeController(HomeController homeController) {
+        this.homeController = homeController;
+    }
+
+    public void close() throws IOException {
+        Stage stage = (Stage) gridPane.getScene().getWindow();
+        homeController.show();
+        client.requestOut();
+        stage.close();
+    }
+
+    public void rematch(){
+        try {
+            client.requestRematch();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        waitingPane.setVisible(true);
+    }
+
+    public void cancelRematch(){
+        try {
+            client.requestCancelRematch();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        waitingPane.setVisible(false);
+    }
+
+    public void newGame(boolean isWhite) {
+        resetGameState(isWhite);
+    }
+
+    private void resetGameState(boolean isWhite) {
+        // Đặt lại màu của các quân cờ
+        board.deleteAllPiece();
+        board.initializePieces();
+
+
+        // Xóa lịch sử nước đi
+        selectedTile = null;
+        selectedPiece = null;
+        lastMoveStart = null;
+        lastMoveEnd = null;
+        clearHighlights();
+
+        // Đặt lại màu của người chơi
+        // Đặt lại lượt chơi
+        startGame(isWhite);
+
+        // Đóng thông báo kết quả
+        resultPane.setVisible(false);
+        waitingPane.setVisible(false);
     }
 }

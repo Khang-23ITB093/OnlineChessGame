@@ -12,9 +12,7 @@ import org.example.onlinechessgame.pieces.*;
 import java.io.Serial;
 import java.io.Serializable;
 
-public class Board implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class Board {
     private GridPane gridPane;
     private Tile[][] board;
     private Tile enPassantTargetTile;
@@ -45,7 +43,7 @@ public class Board implements Serializable {
                 boolean isWhite = row == 6 || row == 7; // Quân trắng ở hàng 6 và 7
                 PieceType pieceType;
                 if (row == 1 || row == 6) {
-                    pieceType = PieceType.PAWN;
+                    pieceType = PieceType.ROOK;
                 } else if (row == 0 || row == 7) {
                     switch (col) {
                         case 0: case 7: pieceType = PieceType.ROOK; break;
@@ -62,6 +60,14 @@ public class Board implements Serializable {
                 board[row][col].setPiece((piece = createPiece(pieceType, isWhite)));
                 piece.setRow(row);
                 piece.setCol(col);
+            }
+        }
+    }
+
+    public void deleteAllPiece(){
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                deletePiece(board[row][col]);
             }
         }
     }
@@ -165,5 +171,9 @@ public class Board implements Serializable {
         deletePiece(currentTile);
         pawnTile.setPiece(promotedPiece);
         gridPane.add(promotedPiece, pawnTile.getCol(), pawnTile.getRow());
+    }
+
+    public void setWhiteTurn(boolean whiteTurn) {
+        this.whiteTurn = whiteTurn;
     }
 }

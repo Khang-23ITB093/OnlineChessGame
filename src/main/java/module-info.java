@@ -2,6 +2,7 @@ module org.example.onlinechessgame {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.xml.bind;
+    requires java.sql;
 
 
     opens org.example.onlinechessgame to javafx.fxml;

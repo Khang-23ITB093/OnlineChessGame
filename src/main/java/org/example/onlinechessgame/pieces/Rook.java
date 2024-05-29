@@ -53,7 +53,18 @@ public class Rook extends Piece {
                 newCol += direction[1];
             }
             // Nếu ô đích có quân cờ
-            possibleMoves.add(board.getTile(newRow, newCol));
+            if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8 && board.getTile(newRow, newCol).hasPiece()) {
+                possibleMoves.add(board.getTile(newRow, newCol));
+                if (board.getTile(newRow, newCol).getPiece().getType() == PieceType.KING && board.getTile(newRow, newCol).getPiece().isWhite() != this.isWhite()) {
+                    newRow += direction[0];
+                    newCol += direction[1];
+                    while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8 && isValidCapture(board, newRow, newCol)) {
+                        possibleMoves.add(board.getTile(newRow, newCol));
+                        newRow += direction[0];
+                        newCol += direction[1];
+                    }
+                }
+            }
         }
 
         return possibleMoves;
