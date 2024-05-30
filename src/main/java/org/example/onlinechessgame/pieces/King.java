@@ -37,10 +37,10 @@ public class King extends Piece{
             possibleMoves.add(checkCastling(board, currentTile, 0 )); // Queenside
         }
 
-        // Loại bỏ các nước đi mà vua không thể đi
+        // Remove ilegal moves
         for (Tile opponentMove : opponentMoves) {
             if (opponentMove != null) {
-                // Nếu nước đi của đối phương chứa vị trí của vua của bạn, loại bỏ 2 nước nhập thành
+                // if opponent moves contain King Tile remove Castling
                 if (opponentMove.getRow() == currentTile.getRow() && opponentMove.getCol() == currentTile.getCol()) {
                     possibleMoves.remove(checkCastling(board, currentTile, 7));
                     possibleMoves.remove(checkCastling(board, currentTile, 0));

@@ -17,25 +17,25 @@
     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-      <Button fx:id="rookButton" mnemonicParsing="false" onAction="#promoteToRook" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+      <Button fx:id="rookButton" mnemonicParsing="false" onAction="#promoteToRook" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent" stylesheets="@../style/style.css" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
          <graphic>
             <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
             </ImageView>
          </graphic>
       </Button>
-      <Button fx:id="knightButton" mnemonicParsing="false" onAction="#promoteToKnight" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent;" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+      <Button fx:id="knightButton" mnemonicParsing="false" onAction="#promoteToKnight" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent;" stylesheets="@../style/style.css" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
          <graphic>
             <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
             </ImageView>
          </graphic>
       </Button>
-      <Button fx:id="queenButton" mnemonicParsing="false" onAction="#promoteToQueen" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent;" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+      <Button fx:id="queenButton" mnemonicParsing="false" onAction="#promoteToQueen" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent;" stylesheets="@../style/style.css" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
          <graphic>
             <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
             </ImageView>
          </graphic>
       </Button>
-      <Button fx:id="bishopButton" mnemonicParsing="false" onAction="#promoteToBishop" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent;" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+      <Button fx:id="bishopButton" mnemonicParsing="false" onAction="#promoteToBishop" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: transparent;" stylesheets="@../style/style.css" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
          <graphic>
             <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
             </ImageView>

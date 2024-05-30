@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
@@ -69,6 +70,9 @@ public class LoginController implements Initializable {
     private Label wrongPasswordLabel;
 
     @FXML
+    private Label wrongLengthUsernameLabel;
+
+    @FXML
     private Line line;
 
     @FXML
@@ -91,6 +95,25 @@ public class LoginController implements Initializable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        //key event for login
+        passwordLoginText.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                login();
+            }
+        });
+        usernameLoginText.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                login();
+            }
+        });
+
+        //key event for register
+        rePasswordRegisterText.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                register();
+            }
+        });
     }
     public void login() {
         if (usernameLoginText.getText().trim().isEmpty() || passwordLoginText.getText().trim().isEmpty()) {
@@ -118,9 +141,7 @@ public class LoginController implements Initializable {
 //        Scene scene = new Scene(fxmlLoader.load(), 816, 816);
             Scene scene = new Scene(fxmlLoader.load(), 600, 450);
             primaryStage.setTitle("Chess App");
-            primaryStage.setOnCloseRequest(event -> {
-                System.exit(0);
-            });
+            primaryStage.setOnCloseRequest(event -> System.exit(0));
             primaryStage.getIcons().add(new Image(String.valueOf(ChessApp.class.getResource("/org/example/onlinechessgame/Images/logo.png"))));
             primaryStage.setResizable(true);
             primaryStage.setScene(scene);
@@ -153,18 +174,31 @@ public class LoginController implements Initializable {
         String password = passwordRegisterText.getText().trim();
         String rePassword = rePasswordRegisterText.getText().trim();
         String username = usernameRegisterText.getText().trim();
+        if (username.length() > 20) {
+            wrongLengthUsernameLabel.setVisible(true);
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2.5), e -> wrongLengthUsernameLabel.setVisible(false)));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
+            return;
+        }
         if (!password.equals(rePassword)) {
             wrongRetypePWLabel.setVisible(true);
-            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
-                wrongRetypePWLabel.setVisible(false);
-            }));
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2.5), e -> wrongRetypePWLabel.setVisible(false)));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
+            return;
+        }
+        // Kiểm tra mật khẩu
+        String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,}$";
+        if (!password.matches(passwordPattern)) {
+            wrongPasswordLabel.setVisible(true);
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> wrongPasswordLabel.setVisible(false)));
             timeline.setCycleCount(Timeline.INDEFINITE);
             timeline.play();
             return;
         }
         try {
             client.requestRegister(email, password, username);
-            registerSuccess();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -176,20 +210,9 @@ public class LoginController implements Initializable {
         loginSuccess();
     }
 
-    public void registerFailed() {
-        wrongEmailLabel.setVisible(true);
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
-            wrongEmailLabel.setVisible(false);
-        }));
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
-    }
-
     private void wrongInfo() {
         wrongInfoLabel.setVisible(true);
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
-            wrongInfoLabel.setVisible(false);
-        }));
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> wrongInfoLabel.setVisible(false)));
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -223,5 +246,19 @@ public class LoginController implements Initializable {
 
     public Client getClient() {
         return client;
+    }
+
+    public void usernameExists() {
+        wrongUsernameLabel.setVisible(true);
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> wrongUsernameLabel.setVisible(false)));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+
+    public void emailExists() {
+        wrongEmailLabel.setVisible(true);
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> wrongEmailLabel.setVisible(false)));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
     }
 }

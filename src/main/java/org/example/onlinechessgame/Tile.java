@@ -9,7 +9,9 @@ import org.example.onlinechessgame.pieces.Piece;
 import java.io.Serial;
 import java.io.Serializable;
 
-public class Tile extends StackPane{
+public class Tile extends StackPane implements Serializable{
+    @Serial
+    private static final long serialVersionUID = 1L;
     private Piece piece;
     private int row, col;
     private boolean isLight;

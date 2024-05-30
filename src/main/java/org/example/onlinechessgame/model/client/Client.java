@@ -84,10 +84,28 @@ public class Client {
         oos.writeObject(new Message(Message.MessageType.QUICK_LOGIN, QuickLoginUtil.readFile()));
     }
 
+    public void requestDraw() throws IOException {
+        oos.writeObject(new Message(Message.MessageType.DRAW,null));
+    }
+
+    public void requestAcceptDraw() throws IOException {
+        oos.writeObject(new Message(Message.MessageType.ACCEPT_DRAW,null));
+    }
+
+    public void getData() throws IOException {
+        oos.writeObject(new Message(Message.MessageType.GET_DATA, null));
+    }
+
     public void winGame() throws IOException {
         // ... gửi thông báo thắng đến server ...
         oos.writeObject(new Message(Message.MessageType.WIN, null));
     }
+
+    public void loseGame() throws IOException {
+        // ... gửi thông báo thua đến server ...
+        oos.writeObject(new Message(Message.MessageType.LOSE, null));
+    }
+
 
     public void requestOut() throws IOException {
         // ... gửi thông báo out không rematch ...
@@ -99,6 +117,9 @@ public class Client {
         oos.writeObject(new Message(Message.MessageType.EXIT, null));
     }
 
+    public void sendChat(String message) throws IOException{
+        oos.writeObject(new Message(Message.MessageType.MESSAGE, message));
+    }
 
     public void movePiece(Move move) throws IOException {
         // ... gửi nước đi của mình đến opponent ...
@@ -114,6 +135,8 @@ public class Client {
         oos.writeObject(new Message(Message.MessageType.DISCONNECT, null));
         socket.close();
     }
+
+
 
     public ChessBoardController getController() {
         return controller;

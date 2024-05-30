@@ -120,10 +120,12 @@ public class ClientHandler implements Runnable{
 
                     case REGISTER -> {
                         String[] data = (String[]) message.getData();
-                        System.out.println("Received register request!" + data[0] + " " + data[1] + " " + data[2]);
-                        if (server.getServerDatabaseHandler().authenticateUser(data[0], data[1])) {
-                            oos.writeObject(new Message(Message.MessageType.REGISTER_FAILED, null));
-                        } else {
+                        System.out.println("Received register request!" + data[2] + " " + data[1] + " " + data[2]);
+                        if (server.getServerDatabaseHandler().checkEmail(data[0])) {
+                            oos.writeObject(new Message(Message.MessageType.CHECK_EMAIL, true));
+                        } else if (server.getServerDatabaseHandler().checkUsername(data[2])) {
+                            oos.writeObject(new Message(Message.MessageType.CHECK_USERNAME, true));
+                        }else {
                             server.getServerDatabaseHandler().registerUser(data);
                             oos.writeObject(new Message(Message.MessageType.REGISTER, null));
                         }
@@ -131,7 +133,6 @@ public class ClientHandler implements Runnable{
 
                     case WIN -> {
                         System.out.println("Received win from winner(email): " + user.getEmail());
-                        // Truyền object Board đến đối thủ
                         System.out.println("Update points for winner: " + user.getUsername());
                         server.getServerDatabaseHandler().updatePlayerPoints(true, user);
                         if (opponent != null) {
@@ -142,6 +143,21 @@ public class ClientHandler implements Runnable{
                         else {
                             System.out.println("Update points for loser: " + opponentUser.getUsername());
                             getServer().getServerDatabaseHandler().updatePlayerPoints(false, opponentUser);
+                        }
+                    }
+
+                    case LOSE -> {
+                        System.out.println("Received lose from loser(email): " + user.getEmail());
+                        System.out.println("Update points for winner: " + user.getUsername());
+                        server.getServerDatabaseHandler().updatePlayerPoints(false, user);
+                        if (opponent != null) {
+                            opponent.sendMessage(new Message(Message.MessageType.WIN, null));
+                            System.out.println("Update points for Winner: " + opponent.getUser().getUsername());
+                            opponent.getServer().getServerDatabaseHandler().updatePlayerPoints(true, opponent.getUser());
+                        }
+                        else {
+                            System.out.println("Update points for Winner: " + opponentUser.getUsername());
+                            getServer().getServerDatabaseHandler().updatePlayerPoints(true, opponentUser);
                         }
                     }
 
@@ -167,6 +183,27 @@ public class ClientHandler implements Runnable{
                         System.out.println("Client out. Not rematch!");
                         opponent = null;
                     }
+
+                    case MESSAGE -> {
+                        opponent.sendMessage(message);
+                    }
+
+                    case GET_DATA -> {
+                        oos.writeObject(new Message(Message.MessageType.GET_DATA, user));
+                    }
+
+                    case DRAW -> {
+                        System.out.println("Received draw from client!");
+                        // Truyền object Board đến đối thủ
+                        opponent.sendMessage(message);
+                    }
+
+                    case ACCEPT_DRAW -> {
+                        System.out.println("Received accept draw from client!");
+                        // Truyền object Board đến đối thủ
+                        opponent.sendMessage(message);
+                    }
+
                 }
             }
         } catch (SocketException socketException){

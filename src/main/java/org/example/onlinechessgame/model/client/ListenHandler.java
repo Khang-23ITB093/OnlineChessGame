@@ -93,6 +93,16 @@ public class ListenHandler implements Runnable {
                             loginController.loginFailed();
                             break;
 
+                        case CHECK_USERNAME:
+                            if ((boolean)message.getData())
+                                loginController.usernameExists();
+                            break;
+
+                        case CHECK_EMAIL:
+                            if ((boolean)message.getData())
+                                loginController.emailExists();
+                            break;
+
                         case QUICK_LOGIN:
                             System.out.println("Quick login successful!");
                             Platform.runLater(() -> loginController.loginSuccess());
@@ -104,12 +114,7 @@ public class ListenHandler implements Runnable {
                             break;
                         case REGISTER:
                             System.out.println("Register successful!");
-                            Platform.runLater(() -> loginController.loginSuccess());
-                            break;
-
-                        case REGISTER_FAILED:
-                            System.out.println("Register failed!");
-                            loginController.registerFailed();
+                            Platform.runLater(() -> loginController.registerSuccess());
                             break;
 
                         case INFORMATION_MATCH:
@@ -128,6 +133,34 @@ public class ListenHandler implements Runnable {
                             Platform.runLater(() -> client.getController().winning());
                             break;
 
+                        case MESSAGE:
+                            System.out.println("Received message from opponent!");
+                            Platform.runLater(() -> client.getController().displayMessage(message.getData().toString()));
+
+                        case GET_DATA:
+                            System.out.println("Received data from server!");
+                            data = message.getData();
+                            if (data instanceof User)
+                                Platform.runLater(() -> client.getHomeController().setUser((User)data));
+                            else System.out.println("Invalid data type");
+                            break;
+
+                        case DRAW:
+                            System.out.println("Draw!");
+                            Platform.runLater(() -> {
+                                try {
+                                    client.getController().draw();
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            break;
+
+                        case ACCEPT_DRAW:
+                            Platform.runLater(() -> {
+                                client.getController().showDraw();
+                            });
+                            break;
                         default:
                             System.out.println("Invalid message type" + message.getType() + message.getData().toString());
 

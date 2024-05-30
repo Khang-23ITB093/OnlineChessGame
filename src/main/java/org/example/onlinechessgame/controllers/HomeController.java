@@ -1,14 +1,20 @@
 package org.example.onlinechessgame.controllers;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.example.onlinechessgame.ChessApp;
+import org.example.onlinechessgame.model.User;
 import org.example.onlinechessgame.model.client.Client;
 import org.example.onlinechessgame.util.QuickLoginUtil;
 
@@ -29,17 +35,35 @@ public class HomeController implements Initializable {
     @FXML
     private Pane waitingPane;
 
+    @FXML
+    private Label timerLabel;
+
+    @FXML
+    private Label userUsernameLabel;
+
+    @FXML
+    private Label userEmailLabel;
+
+    @FXML
+    private Label userPointLabel;
+
+    @FXML
+    private ProgressBar progressBar;
+
+    private User user;
+
     private Client client;
     private ChessBoardController controller;
+    private Timeline countdownTimeline;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
     }
 
     public void matching(){
         try {
             client.requestMatchmaking();
             waitingPane.setVisible(true);
+            startCountdown();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -49,14 +73,16 @@ public class HomeController implements Initializable {
         try {
             client.requestCancelMatchmaking();
             waitingPane.setVisible(false);
+            stopCountdown();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void setClient(Client client) {
+    public void setClient(Client client) throws IOException {
         this.client = client;
         client.setHomeController(this);
+        client.getData();
     }
 
     public void matchSuccess(String message) {
@@ -78,6 +104,8 @@ public class HomeController implements Initializable {
             controller.setClient(client);
             controller.setHomeController(this);
             waitingPane.setVisible(false);
+            stopCountdown();
+
             controller.startGame(message.equals("WHITE"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -149,6 +177,44 @@ public class HomeController implements Initializable {
 
     public ChessBoardController getController() {
         return controller;
+    }
+    public void startCountdown() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            String currentTimeText = timerLabel.getText().substring(6); // Lấy phần giây trong định dạng "00:00:20"
+            int currentTime = Integer.parseInt(currentTimeText);
+            currentTime--;
+            String formattedTime = String.format("00:00:%02d", currentTime);
+            timerLabel.setText(formattedTime);
+            progressBar.setProgress(currentTime / 20.0);
+
+            if (currentTime <= 0) {
+                countdownTimeline.stop();
+                cancelMatching();
+            }
+        }));
+
+        countdownTimeline.setCycleCount(20);
+        timerLabel.setText("00:00:20");
+        progressBar.setProgress(1.0);
+        countdownTimeline.play();
+    }
+
+    public void stopCountdown() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+        }
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+        userUsernameLabel.setText(user.getUsername());
+        userEmailLabel.setText(user.getEmail());
+        userPointLabel.setText(String.valueOf(user.getPoint()));
+
     }
 
 }

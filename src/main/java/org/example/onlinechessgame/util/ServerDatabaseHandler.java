@@ -43,7 +43,6 @@ public class ServerDatabaseHandler {
             user.setUsername(resultSet.getString("username"));
             user.setPassword(resultSet.getString("password"));
             user.setEmail(resultSet.getString("email"));
-            user.setCountry(resultSet.getString("country"));
             user.setPoint(resultSet.getInt("point"));
         }
 
@@ -64,5 +63,19 @@ public class ServerDatabaseHandler {
         statement.setInt(1, pointsChange);
         statement.setString(2, user.getEmail()); // currentPlayerUsername là username của người chơi hiện tại
         statement.executeUpdate();
+    }
+
+    public boolean checkUsername(String username) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM user WHERE username = ?");
+        statement.setString(1, username);
+        ResultSet resultSet = statement.executeQuery();
+        return resultSet.next();
+    }
+
+    public boolean checkEmail(String email) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM user WHERE email = ?");
+        statement.setString(1, email);
+        ResultSet resultSet = statement.executeQuery();
+        return resultSet.next();
     }
 }

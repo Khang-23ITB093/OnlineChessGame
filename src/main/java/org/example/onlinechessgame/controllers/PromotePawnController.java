@@ -34,12 +34,14 @@ public class PromotePawnController implements Initializable {
     private Tile pawnTile;
     private Client client;
     private Move move;
+    private ChessBoardController controller;
 
-    public void setup(Board board, Move move, Client client) {
+    public void setup(Board board, Move move, Client client, ChessBoardController chessBoardController) {
         this.move = move;
         this.pawnTile = board.getTile(move.getEndRow(), move.getEndCol());
         this.board = board;
         this.client = client;
+        controller = chessBoardController;
         displayPromotionOptions(pawnTile);
     }
 
@@ -93,6 +95,7 @@ public class PromotePawnController implements Initializable {
         }
     }
     public void exit() {
+        controller.startOpponentTurn(controller.getPlayerColor());
         Stage stage = (Stage)knightButton.getScene().getWindow();
         stage.close();
     }

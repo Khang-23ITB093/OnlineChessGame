@@ -6,7 +6,7 @@ import org.example.onlinechessgame.Tile;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Knight extends Piece{
+public class    Knight extends Piece{
     public Knight(PieceType type, boolean isWhite) {
         super(type, isWhite);
     }

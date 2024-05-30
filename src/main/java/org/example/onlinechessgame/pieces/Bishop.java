@@ -25,8 +25,10 @@ public class Bishop extends Piece{
                 possibleMoves.add(board.getTile(newRow, newCol));
 
                 Tile destinationTile = board.getTile(newRow, newCol);
+                // If the destination tile already has a piece on it
                 if (destinationTile.hasPiece()) {
-                    break; // Dừng nếu gặp quân cờ
+                    // Stop checking further tiles in this direction
+                    break;
                 }
 
                 newRow += direction[0];

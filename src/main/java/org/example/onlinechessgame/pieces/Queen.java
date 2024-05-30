@@ -25,8 +25,10 @@ public class Queen extends Piece {
                 possibleMoves.add(board.getTile(newRow, newCol));
 
                 Tile destinationTile = board.getTile(newRow, newCol);
+                // If the destination tile already has a piece on it
                 if (destinationTile.hasPiece()) {
-                    break; // Dừng nếu gặp quân cờ
+                    // Stop checking further tiles in this direction
+                    break;
                 }
 
                 newRow += direction[0];
@@ -52,7 +54,7 @@ public class Queen extends Piece {
                 newRow += direction[0];
                 newCol += direction[1];
             }
-            // Nếu ô đích có quân cờ
+            // If destination tile has a piece
             if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8 && board.getTile(newRow, newCol).hasPiece()) {
                 possibleMoves.add(board.getTile(newRow, newCol));
                 if (board.getTile(newRow, newCol).getPiece().getType() == PieceType.KING && board.getTile(newRow, newCol).getPiece().isWhite() != this.isWhite()) {

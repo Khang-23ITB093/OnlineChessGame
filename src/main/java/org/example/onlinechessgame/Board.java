@@ -1,22 +1,13 @@
 package org.example.onlinechessgame;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import org.example.onlinechessgame.controllers.PromotePawnController;
 import org.example.onlinechessgame.pieces.*;
-
-import java.io.Serial;
-import java.io.Serializable;
 
 public class Board {
     private GridPane gridPane;
     private Tile[][] board;
     private Tile enPassantTargetTile;
-    private boolean whiteTurn = true;
+    private boolean whiteTurn = false;
 
     public boolean isWhiteTurn() {
         return whiteTurn;
@@ -43,7 +34,7 @@ public class Board {
                 boolean isWhite = row == 6 || row == 7; // Quân trắng ở hàng 6 và 7
                 PieceType pieceType;
                 if (row == 1 || row == 6) {
-                    pieceType = PieceType.ROOK;
+                    pieceType = PieceType.PAWN;
                 } else if (row == 0 || row == 7) {
                     switch (col) {
                         case 0: case 7: pieceType = PieceType.ROOK; break;
@@ -65,6 +56,7 @@ public class Board {
     }
 
     public void deleteAllPiece(){
+        enPassantTargetTile = null;
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 deletePiece(board[row][col]);
@@ -78,7 +70,7 @@ public class Board {
         deletePiece(destination);
         board[oldRow][oldCol].setPiece(null);
         gridPane.getChildren().remove(piece);
-        System.out.println("Delete "+piece.toString());
+        System.out.println("Delete "+ piece);
 
         piece.setRow(destination.getRow());
         piece.setCol(destination.getCol());
@@ -126,15 +118,15 @@ public class Board {
 
     // Phương thức trợ giúp để tạo Piece
     private Piece createPiece(PieceType type, boolean isWhite) {
-        switch (type) {
-            case KING: return new King(type, isWhite);
-            case QUEEN: return new Queen(type, isWhite);
-            case ROOK: return new Rook(type, isWhite);
-            case BISHOP: return new Bishop(type, isWhite);
-            case KNIGHT: return new Knight(type, isWhite);
-            case PAWN: return new Pawn(type, isWhite);
-            default: throw new IllegalArgumentException("Invalid piece type");
-        }
+        return switch (type) {
+            case KING -> new King(type, isWhite);
+            case QUEEN -> new Queen(type, isWhite);
+            case ROOK -> new Rook(type, isWhite);
+            case BISHOP -> new Bishop(type, isWhite);
+            case KNIGHT -> new Knight(type, isWhite);
+            case PAWN -> new Pawn(type, isWhite);
+            default -> throw new IllegalArgumentException("Invalid piece type");
+        };
     }
 
     public Tile getTile(int row, int col) {
@@ -163,7 +155,7 @@ public class Board {
 
 
     public void promotePawn(Tile pawnTile, PieceType promotionType) {
-        Piece promotedPiece = null;
+        Piece promotedPiece;
         Tile currentTile = getTile(pawnTile.getRow(), pawnTile.getCol());
         if (currentTile.getPiece() instanceof Pawn)
             promotedPiece = ((Pawn)currentTile.getPiece()).promotePawn(promotionType);
