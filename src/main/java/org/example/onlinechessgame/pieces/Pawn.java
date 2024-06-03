@@ -40,7 +40,8 @@ public class Pawn extends Piece{
 
         //En passant move(bắt tốt qua đường)
         Tile enPassantTarget = board.getEnPassantTargetTile();
-        if (enPassantTarget != null && Math.abs(enPassantTarget.getRow() - currentTile.getRow()) == 1 && Math.abs(enPassantTarget.getCol() - currentTile.getCol()) == 1) {
+        if (enPassantTarget != null && Math.abs(enPassantTarget.getRow() - currentTile.getRow()) == 1
+                && Math.abs(enPassantTarget.getCol() - currentTile.getCol()) == 1) {
             possibleMoves.add(enPassantTarget);
         }
 

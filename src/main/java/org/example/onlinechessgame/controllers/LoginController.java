@@ -231,17 +231,20 @@ public class LoginController implements Initializable {
     public void backToLogin() {
         hideAll();
         loginPane.setVisible(true);
+        ((Stage) usernameLoginText.getScene().getWindow()).setTitle("Login");
     }
 
     public void showForgetPane() {
         hideAll();
         forgetPassPane.setVisible(true);
+        ((Stage) usernameLoginText.getScene().getWindow()).setTitle("Forget Password");
     }
 
     //Register
     public void showRegisterPane() {
         hideAll();
         registerPane.setVisible(true);
+        ((Stage) usernameLoginText.getScene().getWindow()).setTitle("Register");
     }
 
     public Client getClient() {

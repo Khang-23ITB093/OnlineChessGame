@@ -9,11 +9,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.Glow;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -60,6 +62,18 @@ public class ChessBoardController implements Initializable {
     private HBox player1Hbox;
     @FXML
     private HBox player2Hbox;
+    @FXML
+    private HBox blackRow1;
+    @FXML
+    private HBox blackRow2;
+    @FXML
+    private HBox whiteRow1;
+    @FXML
+    private HBox whiteRow2;
+    @FXML
+    private VBox capturedPiecesBlackVbox;
+    @FXML
+    private VBox capturedPiecesWhiteVbox;
 
     // Timer
     private int player1Time;
@@ -166,17 +180,29 @@ public class ChessBoardController implements Initializable {
                         winning();
                     }
 
+                    // Capture Piece(En passant)
+                    if (selectedTile.getPiece().getType() == PieceType.PAWN && clickedTile == board.getEnPassantTargetTile()) {
+                        Piece piece;
+                        if (clickedTile.getRow() == 2)
+                            piece = board.getTile(clickedTile.getRow()+1, clickedTile.getCol()).getPiece();
+                        else piece = board.getTile(clickedTile.getRow()-1, clickedTile.getCol()).getPiece();
+                        capturePiece(piece);
+                    }
+
                     //Pawn promotion
                     if (selectedTile.getPiece().getType() == PieceType.PAWN && (clickedTile.getRow() == 0 || clickedTile.getRow() == 7)) {
-                        //Trường hợp tốt ăn vua ở ô phong cấp
+                        //Trường hợp tốt ăn quân cờ khác hoặc tiến tới ô phong cấp
                         if (isMyTurn && !clickedTile.hasPiece() || isMyTurn && clickedTile.hasPiece() && clickedTile.getPiece().getType() != PieceType.KING && clickedTile.getPiece().isWhite() != selectedTile.getPiece().isWhite()) {
+                            if (clickedTile.hasPiece()) {
+                                capturePiece(clickedTile.getPiece());
+
+                            }
                             // Nước đi hợp lệ, di chuyển quân cờ
                             board.movePiece(selectedPiece, clickedTile);
                             showPromotionPopup(createMove(selectedTile, clickedTile));
-
                         }
-                        else { //Trường hợp tốt ăn quân cờ khác hoặc tiến tới ô phong cấp
-                            // Nước đi hợp lệ, di chuyển quân cờ
+                        else {  //Trường hợp tốt ăn vua ở ô phong cấp
+                            capturePiece(clickedTile.getPiece());
                             board.movePiece(selectedPiece, clickedTile);
                             try {
                                 client.movePiece(createMove(selectedTile, clickedTile));
@@ -186,6 +212,11 @@ public class ChessBoardController implements Initializable {
                         }
                     }
                     else {
+                        // Nếu ô đích có quân cờ thêm quân cờ bị ăn vào vbox
+                        if (clickedTile.hasPiece() && clickedTile.getPiece().isWhite() != playerColor) {
+                            capturePiece(clickedTile.getPiece());
+
+                        }
                         // Nước đi hợp lệ, di chuyển quân cờ
                         board.movePiece(selectedPiece, clickedTile);
 
@@ -221,8 +252,12 @@ public class ChessBoardController implements Initializable {
         for (Tile tile : possibleMoves) {
             if (tile != null) {
 //                tile.getChildren().getFirst().setStyle(piece.isWhite() ? "-fx-fill: #eeeed2" : "-fx-fill: #769656;"); // Tô sáng nền của Tile
-                tile.getChildren().getFirst().setStyle("-fx-fill: #f5f682;"); // Tô sáng nền của Tile
+                if (tile.hasPiece() || tile == board.getEnPassantTargetTile())
+                    tile.getChildren().getFirst().setStyle("-fx-fill: #FF3333;"); // Tô sáng nền của Tile màu đỏ
+                else
+                    tile.getChildren().getFirst().setStyle("-fx-fill: #E4DD51;"); // Tô sáng nền của Tile màu vàng
                 tile.setEffect(glow);
+
             }
         }
     }
@@ -245,7 +280,10 @@ public class ChessBoardController implements Initializable {
             higlightTile(lastMoveEnd);
     }
     private void higlightTile(Tile tile) {
-        tile.getChildren().getFirst().setStyle("-fx-fill: #f5f682;"); // Tô sáng nền của Tile
+        if (tile.isLight())
+            tile.getChildren().getFirst().setStyle("-fx-fill: #f5f682;"); // Tô sáng nền của Tile
+        else
+            tile.getChildren().getFirst().setStyle("-fx-fill: #b9ca43;"); // Tô sáng nền của Tile
         tile.setEffect(null);
     }
 
@@ -314,6 +352,19 @@ public class ChessBoardController implements Initializable {
         Platform.runLater(() -> {
             Tile startTile = board.getTile(move.getStartRow(), move.getStartCol());
             Tile endTile = board.getTile(move.getEndRow(), move.getEndCol());
+
+            //Capture
+            if (endTile.hasPiece() && endTile.getPiece().isWhite() != startTile.getPiece().isWhite()) {
+                capturePiece(endTile.getPiece());
+            }
+
+            //Capture (En passant)
+            if (startTile.getPiece().getType() == PieceType.PAWN && endTile == board.getEnPassantTargetTile()) {
+                if (endTile.getRow() == 2)
+                    capturePiece(board.getTile(endTile.getRow() + 1, endTile.getCol()).getPiece());
+                else capturePiece(board.getTile(endTile.getRow() - 1, endTile.getCol()).getPiece());
+            }
+
             board.movePiece(startTile.getPiece(), endTile);
             highlightMoved(startTile, endTile);
             isMyTurn = true;
@@ -340,12 +391,17 @@ public class ChessBoardController implements Initializable {
             throw new RuntimeException(e);
         }
         gridPane.setDisable(true);
+        stopAllTimeLine();
     }
+
+
+
     public void losing(){
         resultPane.setVisible(true);
         isMyTurn = false;
         winnerLabel.setText((!playerColor ? namePlayer1Label.getText() : namePlayer2Label.getText()) + " Won!");
         gridPane.setDisable(true);
+        stopAllTimeLine();
     }
 
     public void setHomeController(HomeController homeController) {
@@ -433,7 +489,7 @@ public class ChessBoardController implements Initializable {
     }
 
 
-
+    //Rematch
     public void startCountdownWaitingRematch() {
         if (countdownTimeline != null) {
             countdownTimeline.stop();
@@ -471,8 +527,8 @@ public class ChessBoardController implements Initializable {
     }
 
     private void initializeTimer(){
-        player1Time = 20; // 10 minutes in seconds
-        player2Time = 20; // 10 minutes in seconds
+        player1Time = 600; // 10 minutes in seconds
+        player2Time = 600; // 10 minutes in seconds
         player1Timeline = null;
         player2Timeline = null;
         player1Timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
@@ -538,10 +594,10 @@ public class ChessBoardController implements Initializable {
     }
 
     private void stopAllTimeLine(){
-        player1Time = 20; // 10 minutes in seconds
-        player2Time = 20; // 10 minutes in seconds
         player1Timeline.stop();
         player2Timeline.stop();
+        player1Time = 600; // 10 minutes in seconds
+        player2Time = 600; // 10 minutes in seconds
         player1Hbox.setDisable(true);
         player2Hbox.setDisable(true);
     }
@@ -572,6 +628,7 @@ public class ChessBoardController implements Initializable {
         alert.showAndWait();
         if (alert.getResult() == ButtonType.YES) {
             client.requestAcceptDraw();
+            stopAllTimeLine();
             showDraw();
         }
         else {
@@ -584,4 +641,26 @@ public class ChessBoardController implements Initializable {
         winnerLabel.setText("Draw!");
         gridPane.setDisable(true);
     }
+
+    public void capturePiece(Piece piece) {
+        // Add the captured piece to the appropriate VBox
+        ImageView imageView = new ImageView(piece.getImage());
+        imageView.setFitWidth(30);
+        imageView.setFitHeight(30);
+
+        if (!piece.isWhite()) {
+            if (whiteRow1.getChildren().size() < 8) {
+                whiteRow1.getChildren().add(imageView);
+            } else {
+                whiteRow2.getChildren().add(imageView);
+            }
+        } else {
+            if (blackRow1.getChildren().size() < 8) {
+                blackRow1.getChildren().add(imageView);
+            } else {
+                blackRow2.getChildren().add(imageView);
+            }
+        }
+    }
+
 }

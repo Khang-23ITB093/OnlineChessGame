@@ -7,6 +7,7 @@ import org.example.onlinechessgame.controllers.HomeController;
 import org.example.onlinechessgame.controllers.LoginController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
+import org.example.onlinechessgame.pieces.Piece;
 import org.example.onlinechessgame.pieces.PieceType;
 import org.example.onlinechessgame.util.QuickLoginUtil;
 
@@ -30,7 +31,8 @@ public class Client {
 
     //Xử lý kết nối với server với đăng nhập, đăng ký, quên mật khẩu
     public Client(String serverAddress, int serverPort, LoginController loginController) {
-        this.serverAddress = serverAddress;
+//        this.serverAddress = serverAddress;
+        this.serverAddress = "localhost";
         this.serverPort = serverPort;
         this.loginController = loginController;
     }

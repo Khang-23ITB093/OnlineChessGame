@@ -2,13 +2,14 @@ package org.example.onlinechessgame.util;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import org.example.onlinechessgame.ChessApp;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.nio.file.Files;
@@ -20,7 +21,7 @@ public class QuickLoginUtil {
 
     public static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES";
-    public static final String filepath = "src/main/resources/login.xml";
+    public static final String filepath = String.valueOf(ChessApp.class.getResource("/org/example/onlinechessgame/temp/login.xml"));
 
 
     public static void saveLoginInfo(String username, String password) throws Exception {

@@ -120,13 +120,14 @@ public class ClientHandler implements Runnable{
 
                     case REGISTER -> {
                         String[] data = (String[]) message.getData();
-                        System.out.println("Received register request!" + data[2] + " " + data[1] + " " + data[2]);
+                        System.out.println("Received register request!" + data[0] + " " + data[1] + " " + data[2]);
                         if (server.getServerDatabaseHandler().checkEmail(data[0])) {
                             oos.writeObject(new Message(Message.MessageType.CHECK_EMAIL, true));
                         } else if (server.getServerDatabaseHandler().checkUsername(data[2])) {
                             oos.writeObject(new Message(Message.MessageType.CHECK_USERNAME, true));
                         }else {
                             server.getServerDatabaseHandler().registerUser(data);
+                            user = server.getServerDatabaseHandler().getUser(data[2]);
                             oos.writeObject(new Message(Message.MessageType.REGISTER, null));
                         }
                     }
@@ -204,6 +205,9 @@ public class ClientHandler implements Runnable{
                         opponent.sendMessage(message);
                     }
 
+                    default -> {
+                        System.out.println("Invalid message type" + message.getType() + message.getData().toString());
+                    }
                 }
             }
         } catch (SocketException socketException){
@@ -213,6 +217,9 @@ public class ClientHandler implements Runnable{
                 opponent.sendMessage(new Message(Message.MessageType.WIN, null));
                 opponent.setOpponent(null);
             }
+            server.removeClient(this);
+            server.cancelWaiting(this);
+            server.cancelRematch(this);
             try {
                 socket.close();
             } catch (IOException e) {

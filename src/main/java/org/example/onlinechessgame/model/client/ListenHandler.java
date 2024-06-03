@@ -6,6 +6,7 @@ import org.example.onlinechessgame.controllers.LoginController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
 import org.example.onlinechessgame.model.User;
+import org.example.onlinechessgame.pieces.Piece;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -161,6 +162,7 @@ public class ListenHandler implements Runnable {
                                 client.getController().showDraw();
                             });
                             break;
+
                         default:
                             System.out.println("Invalid message type" + message.getType() + message.getData().toString());
 

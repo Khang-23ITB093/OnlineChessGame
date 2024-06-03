@@ -63,6 +63,7 @@ public class HomeController implements Initializable {
         try {
             client.requestMatchmaking();
             waitingPane.setVisible(true);
+            homePane.setDisable(true);
             startCountdown();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -73,6 +74,7 @@ public class HomeController implements Initializable {
         try {
             client.requestCancelMatchmaking();
             waitingPane.setVisible(false);
+            homePane.setDisable(false);
             stopCountdown();
         } catch (IOException e) {
             throw new RuntimeException(e);

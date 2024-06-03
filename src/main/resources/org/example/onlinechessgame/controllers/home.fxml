@@ -33,25 +33,6 @@
                      </image>
                   </ImageView>
                </graphic></Button>
-            <Pane fx:id="waitingPane" layoutX="132.0" layoutY="202.0" prefHeight="183.0" prefWidth="356.0" style="-fx-background-color: green; -fx-border-radius: 20px; -fx-border-width: 2px; -fx-border-color: black; -fx-background-radius: 25px;" visible="false">
-               <children>
-                  <Label layoutX="78.0" layoutY="14.0" prefHeight="30.0" prefWidth="200.0" text="Wait for player..." textFill="WHITE">
-                     <font>
-                        <Font name="Arial Bold" size="25.0" />
-                     </font>
-                  </Label>
-                  <ProgressBar fx:id="progressBar" layoutX="77.0" layoutY="60.0" prefWidth="200.0" progress="0.0" />
-                  <Label fx:id="timerLabel" layoutX="116.0" layoutY="78.0" prefHeight="39.0" prefWidth="125.0" text="00:00:20" textFill="WHITE">
-                     <font>
-                        <Font name="System Bold" size="27.0" />
-                     </font>
-                  </Label>
-                  <Button layoutX="119.0" layoutY="115.0" mnemonicParsing="false" onAction="#cancelMatching" prefHeight="46.0" prefWidth="104.0" style="-fx-background-radius: 5px; -fx-background-color: transparent; -fx-border-color: #302e2b; -fx-border-radius: 8px; -fx-border-width: 2px;" stylesheets="@../style/style.css" text="Cancel" textFill="WHITE">
-                     <font>
-                        <Font size="23.0" />
-                     </font></Button>
-               </children>
-            </Pane>
             <ImageView fitHeight="50.0" fitWidth="62.0" layoutX="14.0" layoutY="14.0" onMouseClicked="#showProfilePane" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../Images/avatar.jpg" />
@@ -68,6 +49,26 @@
                   <Image url="@../Images/logo.png" />
                </image>
             </ImageView>
+         </children>
+      </Pane>
+      <Pane fx:id="waitingPane" layoutX="127.0" layoutY="202.0" prefHeight="183.0" prefWidth="356.0" style="-fx-background-color: green; -fx-border-radius: 20px; -fx-border-width: 2px; -fx-border-color: black; -fx-background-radius: 25px;" visible="false">
+         <children>
+            <Label layoutX="78.0" layoutY="14.0" prefHeight="30.0" prefWidth="200.0" text="Wait for player..." textFill="WHITE">
+               <font>
+                  <Font name="Arial Bold" size="25.0" />
+               </font>
+            </Label>
+            <ProgressBar fx:id="progressBar" layoutX="77.0" layoutY="60.0" prefWidth="200.0" progress="0.0" />
+            <Label fx:id="timerLabel" layoutX="116.0" layoutY="78.0" prefHeight="39.0" prefWidth="125.0" text="00:00:20" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="27.0" />
+               </font>
+            </Label>
+            <Button layoutX="119.0" layoutY="115.0" mnemonicParsing="false" onAction="#cancelMatching" prefHeight="46.0" prefWidth="104.0" style="-fx-background-radius: 5px; -fx-background-color: transparent; -fx-border-color: #302e2b; -fx-border-radius: 8px; -fx-border-width: 2px;" stylesheets="@../style/style.css" text="Cancel" textFill="WHITE">
+               <font>
+                  <Font size="23.0" />
+               </font>
+            </Button>
          </children>
       </Pane>
       <VBox fx:id="profilePane" prefHeight="445.0" prefWidth="600.0" visible="false">
