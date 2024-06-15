@@ -3,6 +3,7 @@ package org.example.onlinechessgame.model.client;
 import javafx.application.Platform;
 import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.controllers.LoginController;
+import org.example.onlinechessgame.model.History;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
 import org.example.onlinechessgame.model.User;
@@ -11,6 +12,7 @@ import org.example.onlinechessgame.pieces.Piece;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.List;
 
 public class ListenHandler implements Runnable {
     private Socket socket;
@@ -146,8 +148,15 @@ public class ListenHandler implements Runnable {
                             else System.out.println("Invalid data type");
                             break;
 
-                        case DRAW:
-                            System.out.println("Draw!");
+                        case GET_HISTORY:
+                            System.out.println("Received history from server!");
+                            Platform.runLater(() -> {
+                                client.getHomeController().setHistoryList((List<History>) message.getData());
+                            });
+                            break;
+
+                        case REQUEST_DRAW:
+                            System.out.println("Opponent request draw!");
                             Platform.runLater(() -> {
                                 try {
                                     client.getController().draw();
@@ -157,7 +166,9 @@ public class ListenHandler implements Runnable {
                             });
                             break;
 
+                        case DRAW:
                         case ACCEPT_DRAW:
+                            System.out.println("Draw!");
                             Platform.runLater(() -> {
                                 client.getController().showDraw();
                             });

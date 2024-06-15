@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Base64;
 
 import static org.example.onlinechessgame.util.QuickLoginUtil.ALGORITHM;
@@ -119,15 +120,27 @@ public class ClientHandler implements Runnable{
 
 
                     case REGISTER -> {
-                        String[] data = (String[]) message.getData();
-                        System.out.println("Received register request!" + data[0] + " " + data[1] + " " + data[2]);
-                        if (server.getServerDatabaseHandler().checkEmail(data[0])) {
+                        String[] encryptedData = (String[]) message.getData();
+                        String encryptedEmail = encryptedData[0];
+                        String encryptedPassword = encryptedData[1];
+                        String encryptedUsername = encryptedData[2];
+                        String encodedKey = encryptedData[3];
+
+                        // Giải mã
+                        byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+                        SecretKey secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, ALGORITHM);
+
+                        String username = QuickLoginUtil.decrypt(encryptedUsername, secretKey);
+                        String password = QuickLoginUtil.decrypt(encryptedPassword, secretKey);
+                        String email = QuickLoginUtil.decrypt(encryptedEmail, secretKey);
+
+                        if (server.getServerDatabaseHandler().checkEmail(email)) {
                             oos.writeObject(new Message(Message.MessageType.CHECK_EMAIL, true));
-                        } else if (server.getServerDatabaseHandler().checkUsername(data[2])) {
+                        } else if (server.getServerDatabaseHandler().checkUsername(username)) {
                             oos.writeObject(new Message(Message.MessageType.CHECK_USERNAME, true));
                         }else {
-                            server.getServerDatabaseHandler().registerUser(data);
-                            user = server.getServerDatabaseHandler().getUser(data[2]);
+                            server.getServerDatabaseHandler().registerUser(new String[]{email, password, username});
+                            user = server.getServerDatabaseHandler().getUser(username);
                             oos.writeObject(new Message(Message.MessageType.REGISTER, null));
                         }
                     }
@@ -145,21 +158,30 @@ public class ClientHandler implements Runnable{
                             System.out.println("Update points for loser: " + opponentUser.getUsername());
                             getServer().getServerDatabaseHandler().updatePlayerPoints(false, opponentUser);
                         }
+                        // Save match history
+                        System.out.println("Save match history!");
+                        server.getServerDatabaseHandler().addMatchHistory(user.getUsername(), opponentUser.getUsername(), LocalDateTime.now(), user.getUsername());
                     }
 
                     case LOSE -> {
                         System.out.println("Received lose from loser(email): " + user.getEmail());
-                        System.out.println("Update points for winner: " + user.getUsername());
-                        server.getServerDatabaseHandler().updatePlayerPoints(false, user);
                         if (opponent != null) {
                             opponent.sendMessage(new Message(Message.MessageType.WIN, null));
-                            System.out.println("Update points for Winner: " + opponent.getUser().getUsername());
-                            opponent.getServer().getServerDatabaseHandler().updatePlayerPoints(true, opponent.getUser());
                         }
                         else {
                             System.out.println("Update points for Winner: " + opponentUser.getUsername());
                             getServer().getServerDatabaseHandler().updatePlayerPoints(true, opponentUser);
+                            System.out.println("Update points for winner: " + user.getUsername());
+                            getServer().getServerDatabaseHandler().updatePlayerPoints(false, user);
+                            // Save match history if opponent is not online
+                            System.out.println("Save match history if opponent is not online!");
+                            server.getServerDatabaseHandler().addMatchHistory(opponentUser.getUsername(), user.getUsername(), LocalDateTime.now(), opponentUser.getUsername());
                         }
+                    }
+
+                    case DRAW -> {
+                        opponent.sendMessage(message);
+                        server.getServerDatabaseHandler().addMatchHistory(user.getUsername(), opponentUser.getUsername(), LocalDateTime.now(), "DRAW");
                     }
 
                     case REMATCH -> {
@@ -193,7 +215,11 @@ public class ClientHandler implements Runnable{
                         oos.writeObject(new Message(Message.MessageType.GET_DATA, user));
                     }
 
-                    case DRAW -> {
+                    case GET_HISTORY -> {
+                        sendMessage(new Message(Message.MessageType.GET_HISTORY, server.getServerDatabaseHandler().getHistory(user.getUsername())));
+                    }
+
+                    case REQUEST_DRAW -> {
                         System.out.println("Received draw from client!");
                         // Truyền object Board đến đối thủ
                         opponent.sendMessage(message);
@@ -203,6 +229,7 @@ public class ClientHandler implements Runnable{
                         System.out.println("Received accept draw from client!");
                         // Truyền object Board đến đối thủ
                         opponent.sendMessage(message);
+                        server.getServerDatabaseHandler().addMatchHistory(user.getUsername(), opponentUser.getUsername(), LocalDateTime.now(), "DRAW");
                     }
 
                     default -> {
@@ -252,6 +279,11 @@ public class ClientHandler implements Runnable{
     }
 
     public User getUser() {
+        try {
+            user = server.getServerDatabaseHandler().getUser(user.getUsername());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return user;
     }
 

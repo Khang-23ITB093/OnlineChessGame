@@ -143,7 +143,7 @@ public class LoginController implements Initializable {
             primaryStage.setTitle("Chess App");
             primaryStage.setOnCloseRequest(event -> System.exit(0));
             primaryStage.getIcons().add(new Image(String.valueOf(ChessApp.class.getResource("/org/example/onlinechessgame/Images/logo.png"))));
-            primaryStage.setResizable(true);
+            primaryStage.setResizable(false);
             primaryStage.setScene(scene);
             primaryStage.show();
             ((HomeController)fxmlLoader.getController()).setClient(client);
@@ -198,8 +198,10 @@ public class LoginController implements Initializable {
             return;
         }
         try {
-            client.requestRegister(email, password, username);
+            client.requestRegister(QuickLoginUtil.encryptLoginInfo(email, password, username));
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

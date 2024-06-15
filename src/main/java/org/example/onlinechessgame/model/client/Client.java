@@ -1,19 +1,11 @@
 package org.example.onlinechessgame.model.client;
-
-import org.example.onlinechessgame.Board;
 import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.controllers.ChessBoardController;
 import org.example.onlinechessgame.controllers.HomeController;
 import org.example.onlinechessgame.controllers.LoginController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
-import org.example.onlinechessgame.pieces.Piece;
-import org.example.onlinechessgame.pieces.PieceType;
 import org.example.onlinechessgame.util.QuickLoginUtil;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -31,8 +23,8 @@ public class Client {
 
     //Xử lý kết nối với server với đăng nhập, đăng ký, quên mật khẩu
     public Client(String serverAddress, int serverPort, LoginController loginController) {
-//        this.serverAddress = serverAddress;
-        this.serverAddress = "localhost";
+        this.serverAddress = serverAddress;
+//        this.serverAddress = "localhost";
         this.serverPort = serverPort;
         this.loginController = loginController;
     }
@@ -41,8 +33,8 @@ public class Client {
         oos.writeObject(new Message(Message.MessageType.LOGIN, strings));
     }
 
-    public void requestRegister(String email, String password, String username) throws IOException {
-        oos.writeObject(new Message(Message.MessageType.REGISTER, new String[]{email, password, username}));
+    public void requestRegister(String[] strings) throws IOException {
+        oos.writeObject(new Message(Message.MessageType.REGISTER, strings));
     }
 
 
@@ -87,7 +79,7 @@ public class Client {
     }
 
     public void requestDraw() throws IOException {
-        oos.writeObject(new Message(Message.MessageType.DRAW,null));
+        oos.writeObject(new Message(Message.MessageType.REQUEST_DRAW,null));
     }
 
     public void requestAcceptDraw() throws IOException {
@@ -108,6 +100,10 @@ public class Client {
         oos.writeObject(new Message(Message.MessageType.LOSE, null));
     }
 
+    public void drawGame() throws IOException {
+        // ... gửi thông báo hòa đến server ...
+        oos.writeObject(new Message(Message.MessageType.DRAW, null));
+    }
 
     public void requestOut() throws IOException {
         // ... gửi thông báo out không rematch ...
@@ -117,6 +113,11 @@ public class Client {
     public void requestExit() throws IOException {
         // ... gửi thông báo exit thoát chương trình ...
         oos.writeObject(new Message(Message.MessageType.EXIT, null));
+    }
+
+    public void requestGetHistory() throws IOException {
+        // ... gửi thông báo lấy lịch sử đấu ...
+        oos.writeObject(new Message(Message.MessageType.GET_HISTORY, null));
     }
 
     public void sendChat(String message) throws IOException{

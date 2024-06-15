@@ -43,6 +43,10 @@ public class ChessBoardController implements Initializable {
     @FXML
     private Label namePlayer2Label;
     @FXML
+    private Label pointPlayer1Label;
+    @FXML
+    private Label pointPlayer2Label;
+    @FXML
     private Label winnerLabel;
     @FXML
     private Label timerLabel;
@@ -172,10 +176,11 @@ public class ChessBoardController implements Initializable {
                 higlightTile(selectedTile);
             } else {
                 // Click vào ô khác
-                // 3. Xử lý di chuyển quân cờ
-                if (isMyTurn && isValidMove(selectedPiece, clickedTile)) {
+                // 3. Handle move Piece
+                // Check valid move(My turn, valid move, king is safe after move)
+                if (isMyTurn && isValidMove(selectedPiece, clickedTile) && board.isKingSafeAfterMove(selectedPiece, clickedTile)) {
 
-                    // Checkmate
+                    // Capture King opponent
                     if (clickedTile.hasPiece() && clickedTile.getPiece().getType() == PieceType.KING && selectedTile.getPiece().isWhite() != clickedTile.getPiece().isWhite()){
                         winning();
                     }
@@ -246,16 +251,17 @@ public class ChessBoardController implements Initializable {
         }
     }
 
+    //Highlight
     private void highlightPossibleMoves(Piece piece) {
         List<Tile> possibleMoves = piece.getPossibleMoves(board, selectedTile);
-        Glow glow = new Glow(0.5);
+        Glow glow = new Glow(0.75);
         for (Tile tile : possibleMoves) {
             if (tile != null) {
 //                tile.getChildren().getFirst().setStyle(piece.isWhite() ? "-fx-fill: #eeeed2" : "-fx-fill: #769656;"); // Tô sáng nền của Tile
                 if (tile.hasPiece() || tile == board.getEnPassantTargetTile())
                     tile.getChildren().getFirst().setStyle("-fx-fill: #FF3333;"); // Tô sáng nền của Tile màu đỏ
-                else
-                    tile.getChildren().getFirst().setStyle("-fx-fill: #E4DD51;"); // Tô sáng nền của Tile màu vàng
+//                else
+//                    tile.getChildren().getFirst().setStyle("-fx-fill: #fcf388;"); // Tô sáng nền của Tile màu vàng
                 tile.setEffect(glow);
 
             }
@@ -278,6 +284,12 @@ public class ChessBoardController implements Initializable {
             higlightTile(lastMoveStart);
         if (lastMoveEnd != null)
             higlightTile(lastMoveEnd);
+        //If King is in check higlight King Tile
+        if (board.isKingInCheck(playerColor)) {
+            highlightKingInCheck(playerColor);
+        } else if (board.isKingInCheck(!playerColor)) {
+            highlightKingInCheck(!playerColor);
+        }
     }
     private void higlightTile(Tile tile) {
         if (tile.isLight())
@@ -299,6 +311,15 @@ public class ChessBoardController implements Initializable {
         lastMoveStart = startTile;
         lastMoveEnd = endTile;
     }
+
+    public void highlightKingInCheck(boolean color) {
+        if (color) {
+            board.getKing(true).getChildren().getFirst().setStyle("-fx-fill: #ff0000;");
+        } else {
+            board.getKing(false).getChildren().getFirst().setStyle("-fx-fill: #ff0000;");
+        }
+    }
+
     private boolean isValidMove(Piece piece, Tile destinationTile) {
         List<Tile> possibleMoves = piece.getPossibleMoves(board, selectedTile);
         return possibleMoves.contains(destinationTile);
@@ -338,11 +359,15 @@ public class ChessBoardController implements Initializable {
         if (playerColor){
             //White
             namePlayer1Label.setText(player.getUsername());
+            pointPlayer1Label.setText(String.valueOf(player.getPoint()));
             namePlayer2Label.setText(opponent.getUsername());
+            pointPlayer2Label.setText(String.valueOf(opponent.getPoint()));
         } else {
             //Black
             namePlayer1Label.setText(opponent.getUsername());
+            pointPlayer1Label.setText(String.valueOf(opponent.getPoint()));
             namePlayer2Label.setText(player.getUsername());
+            pointPlayer2Label.setText(String.valueOf(player.getPoint()));
         }
     }
     private Move createMove(Tile selectedTile, Tile clickedTile) {
@@ -367,6 +392,11 @@ public class ChessBoardController implements Initializable {
 
             board.movePiece(startTile.getPiece(), endTile);
             highlightMoved(startTile, endTile);
+            if (board.isKingInCheck(!playerColor)) {
+                highlightKingInCheck(!playerColor);
+            } else if (board.isKingInCheck(playerColor)) {
+                highlightKingInCheck(playerColor);
+            }
             isMyTurn = true;
             startUserTurn(playerColor);
         });
@@ -394,14 +424,50 @@ public class ChessBoardController implements Initializable {
         stopAllTimeLine();
     }
 
-
-
     public void losing(){
         resultPane.setVisible(true);
         isMyTurn = false;
         winnerLabel.setText((!playerColor ? namePlayer1Label.getText() : namePlayer2Label.getText()) + " Won!");
         gridPane.setDisable(true);
         stopAllTimeLine();
+    }
+
+    public void sendLose(){
+        try {
+            client.loseGame();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        losing();
+    }
+
+    public void drawGame() throws IOException {
+        client.drawGame();
+        showDraw();
+    }
+
+    public void sendDraw() throws IOException {
+        client.requestDraw();
+    }
+
+    public void draw() throws IOException {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to accept the draw?", ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText("Draw");
+        alert.showAndWait();
+        if (alert.getResult() == ButtonType.YES) {
+            client.requestAcceptDraw();
+            stopAllTimeLine();
+            showDraw();
+        }
+        else {
+            alert.close();
+        }
+    }
+
+    public void showDraw(){
+        resultPane.setVisible(true);
+        winnerLabel.setText("Draw!");
+        gridPane.setDisable(true);
     }
 
     public void setHomeController(HomeController homeController) {
@@ -411,6 +477,7 @@ public class ChessBoardController implements Initializable {
     public void close() throws IOException {
         Stage stage = (Stage) gridPane.getScene().getWindow();
         homeController.show();
+        homeController.updateAfterMatch();
         client.requestOut();
         stage.close();
     }
@@ -564,10 +631,22 @@ public class ChessBoardController implements Initializable {
     }
 
     public void startUserTurn(boolean playerColor) {
-        if (playerColor) {
-            startPlayer1Turn();
+        //Check if the game is over
+        if (board.isCheckmate(playerColor)) {
+            sendLose();
+        } else if (board.isStalemate(playerColor)) {
+            try {
+                drawGame();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else {
-            startPlayer2Turn();
+            // Start the timer for the current player
+            if (playerColor) {
+                startPlayer1Turn();
+            } else {
+                startPlayer2Turn();
+            }
         }
     }
 
@@ -616,30 +695,6 @@ public class ChessBoardController implements Initializable {
         else {
             alert.close();
         }
-    }
-
-    public void sendDraw() throws IOException {
-        client.requestDraw();
-    }
-
-    public void draw() throws IOException {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to accept the draw?", ButtonType.YES, ButtonType.NO);
-        alert.setHeaderText("Draw");
-        alert.showAndWait();
-        if (alert.getResult() == ButtonType.YES) {
-            client.requestAcceptDraw();
-            stopAllTimeLine();
-            showDraw();
-        }
-        else {
-            alert.close();
-        }
-    }
-
-    public void showDraw(){
-        resultPane.setVisible(true);
-        winnerLabel.setText("Draw!");
-        gridPane.setDisable(true);
     }
 
     public void capturePiece(Piece piece) {

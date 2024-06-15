@@ -3,6 +3,8 @@ package org.example.onlinechessgame;
 import javafx.scene.layout.GridPane;
 import org.example.onlinechessgame.pieces.*;
 
+import java.util.List;
+
 public class Board {
     private GridPane gridPane;
     private Tile[][] board;
@@ -69,8 +71,7 @@ public class Board {
         int oldCol = piece.getCol();
         deletePiece(destination);
         board[oldRow][oldCol].setPiece(null);
-        gridPane.getChildren().remove(piece);
-        System.out.println("Delete "+ piece);
+
 
         piece.setRow(destination.getRow());
         piece.setCol(destination.getCol());
@@ -83,7 +84,11 @@ public class Board {
             else deletePiece(board[destination.getRow()-1][destination.getCol()]);
         }
 
-        gridPane.add(piece, destination.getCol(), destination.getRow());
+        if (gridPane!= null) {
+            gridPane.getChildren().remove(piece);
+            System.out.println("Delete " + piece);
+            gridPane.add(piece, destination.getCol(), destination.getRow());
+        }
 
         // Kiểm tra en passant
         if (piece instanceof Pawn && Math.abs(destination.getRow() - oldRow) == 2) {
@@ -142,13 +147,15 @@ public class Board {
             piece.setRow(row);
             piece.setCol(col);
             // Cập nhật giao diện nếu piece != null
-            gridPane.add(piece, col, row);
+            if (gridPane != null)
+                gridPane.add(piece, col, row);
         }
     }
     public void deletePiece(Tile destination) {
         if (!destination.hasPiece())
             return;
-        gridPane.getChildren().remove(destination.getPiece());
+        if (gridPane != null)
+            gridPane.getChildren().remove(destination.getPiece());
         destination.setPiece(null);
 
     }
@@ -167,5 +174,86 @@ public class Board {
 
     public void setWhiteTurn(boolean whiteTurn) {
         this.whiteTurn = whiteTurn;
+    }
+
+    public boolean isKingSafeAfterMove(Piece piece, Tile destination) {
+        // Tạo bản sao tạm thời của bàn cờ
+        Board tempBoard = new Board();
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece originalPiece = this.getTile(row, col).getPiece();
+                if (originalPiece != null) {
+                    Piece copiedPiece = createPiece(originalPiece.getType(), originalPiece.isWhite());
+                    copiedPiece.setHasMoved(originalPiece.hasMoved());
+                    tempBoard.setPiece(copiedPiece, row, col);
+                }
+            }
+        }
+
+        // Thực hiện nước đi trên bản sao
+        Piece tempPiece = tempBoard.getTile(piece.getRow(), piece.getCol()).getPiece();
+        tempBoard.movePiece(tempPiece, tempBoard.getTile(destination.getRow(), destination.getCol()));
+
+        // Kiểm tra xem vua có an toàn không
+        return !tempBoard.isKingInCheck(piece.isWhite());
+    }
+
+    public boolean isKingInCheck(boolean color){
+        Tile kingTile = getKing(color);
+        if (kingTile == null)
+            return false;
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece currentPiece;
+                // Lấy quân cờ đối phương
+                if (getTile(row, col).hasPiece() && getTile(row, col).getPiece().isWhite() != color){
+                    currentPiece = getTile(row, col).getPiece();
+                    // Kiểm tra nếu quân cờ đối phương có thể chiếu tướng
+                    for (Tile tile : currentPiece.getPossibleMoves(this, getTile(row, col))){
+                        if (tile == kingTile)
+                            return true;
+                    }
+                }
+
+            }
+        }
+        return false;
+    }
+
+    public Tile getKing(boolean color){
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                if (getTile(row, col).hasPiece() && getTile(row, col).getPiece().getType() == PieceType.KING && getTile(row, col).getPiece().isWhite() == color)
+                    return getTile(row, col);
+            }
+        }
+        return null;
+    }
+
+    //Finish Game
+    public boolean hasValidMoves(boolean isWhite) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Tile tile = getTile(row, col);
+                if (tile.hasPiece() && tile.getPiece().isWhite() == isWhite) {
+                    Piece piece = tile.getPiece();
+                    List<Tile> possibleMoves = piece.getPossibleMoves(this, tile);
+                    for (Tile destination : possibleMoves) {
+                        if (isKingSafeAfterMove(piece, destination)) {
+                            return true; // Có ít nhất một nước đi hợp lệ mà sau đó vua không bị chiếu
+                        }
+                    }
+                }
+            }
+        }
+        return false; // Không có nước đi hợp lệ nào mà sau đó vua không bị chiếu
+    }
+
+    public boolean isCheckmate(boolean isWhite) {
+        return isKingInCheck(isWhite) && !hasValidMoves(isWhite);
+    }
+
+    public boolean isStalemate(boolean isWhite) {
+        return !isKingInCheck(isWhite) && !hasValidMoves(isWhite);
     }
 }

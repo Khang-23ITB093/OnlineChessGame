@@ -75,6 +75,17 @@ public class QuickLoginUtil {
         return new String[]{encryptedUsername, encryptedPassword, encodedKey};
     }
 
+    public static String[] encryptLoginInfo(String email, String password, String username) throws Exception {
+        SecretKey secretKey = generateKey();
+        String encryptedUsername = encrypt(username, secretKey);
+        String encryptedPassword = encrypt(password, secretKey);
+        String encryptedEmail = encrypt(email, secretKey);
+        // Lưu secretKey dưới dạng Base64
+        String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+
+        return new String[]{encryptedEmail, encryptedPassword, encryptedUsername, encodedKey};
+    }
+
     public static String[] readFile() throws Exception {
         // Đọc file XML
         DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();

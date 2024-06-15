@@ -8,12 +8,15 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.onlinechessgame.ChessApp;
+import org.example.onlinechessgame.model.History;
 import org.example.onlinechessgame.model.User;
 import org.example.onlinechessgame.model.client.Client;
 import org.example.onlinechessgame.util.QuickLoginUtil;
@@ -23,6 +26,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class HomeController implements Initializable {
@@ -33,7 +38,13 @@ public class HomeController implements Initializable {
     private VBox profilePane;
 
     @FXML
+    private VBox containerHistoryItemVbox;
+
+    @FXML
     private Pane waitingPane;
+
+    @FXML
+    private Pane historyPane;
 
     @FXML
     private Label timerLabel;
@@ -50,11 +61,15 @@ public class HomeController implements Initializable {
     @FXML
     private ProgressBar progressBar;
 
+    @FXML
+    private ScrollPane historyScrollPane;
+
     private User user;
 
     private Client client;
     private ChessBoardController controller;
     private Timeline countdownTimeline;
+    private ArrayList<History> historyList;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
     }
@@ -99,7 +114,7 @@ public class HomeController implements Initializable {
                 System.exit(0);
             });
             primaryStage.getIcons().add(new Image(String.valueOf(ChessApp.class.getResource("/org/example/onlinechessgame/Images/logo.png"))));
-            primaryStage.setResizable(true);
+            primaryStage.setResizable(false);
             primaryStage.setScene(scene);
             primaryStage.show();
             controller = fxmlLoader.getController();
@@ -107,7 +122,7 @@ public class HomeController implements Initializable {
             controller.setHomeController(this);
             waitingPane.setVisible(false);
             stopCountdown();
-
+            homePane.setDisable(false);
             controller.startGame(message.equals("WHITE"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,7 +141,7 @@ public class HomeController implements Initializable {
                 System.exit(0);
             });
             primaryStage.getIcons().add(new Image(String.valueOf(ChessApp.class.getResource("/org/example/onlinechessgame/Images/logo.png"))));
-            primaryStage.setResizable(true);
+            primaryStage.setResizable(false);
             primaryStage.setScene(scene);
             primaryStage.show();
             client.requestExit();
@@ -155,11 +170,17 @@ public class HomeController implements Initializable {
         homePane.setVisible(false);
         profilePane.setVisible(false);
         waitingPane.setVisible(false);
+        historyPane.setVisible(false);
     }
 
     public void showProfilePane(){
         hiddenAllPane();
         profilePane.setVisible(true);
+    }
+
+    public void showHistoryPane(){
+        hiddenAllPane();
+        historyPane.setVisible(true);
     }
 
     public void backToHome(){
@@ -216,7 +237,35 @@ public class HomeController implements Initializable {
         userUsernameLabel.setText(user.getUsername());
         userEmailLabel.setText(user.getEmail());
         userPointLabel.setText(String.valueOf(user.getPoint()));
+        getHistoryList();
+    }
 
+    public void getHistoryList() {
+        try {
+            client.requestGetHistory();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateAfterMatch() throws IOException {
+        client.getData();
+    }
+
+    public void setHistoryList(List<History> historyList) {
+        containerHistoryItemVbox.getChildren().clear();
+        this.historyList = (ArrayList<History>) historyList;
+        for (int i = historyList.size() - 1; i >= 0; i--) {
+            FXMLLoader fxmlLoader = new FXMLLoader(ChessApp.class.getResource("/org/example/onlinechessgame/controllers/HistoryItem.fxml"));
+            try {
+                HBox historyItem = fxmlLoader.load();
+                HistoryItemController controller = fxmlLoader.getController();
+                controller.setHistory(historyList.get(i), user.getUsername());
+                containerHistoryItemVbox.getChildren().add(historyItem);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

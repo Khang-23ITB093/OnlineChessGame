@@ -24,7 +24,7 @@ public class ChessApp extends Application {
             System.exit(0);
         });
         primaryStage.getIcons().add(new Image(String.valueOf(ChessApp.class.getResource("/org/example/onlinechessgame/Images/logo.png"))));
-        primaryStage.setResizable(true);
+        primaryStage.setResizable(false);
         primaryStage.setScene(scene);
         LoginController loginController = fxmlLoader.getController();
         loginController.getClient().requestQuickLogin();
