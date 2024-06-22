@@ -3,7 +3,7 @@
 <a href="https://github.com/Khang-23ITB093/OnlineChessGame/releases"><img src="https://img.shields.io/github/v/release/Khang-23ITB093/OnlineChessGame?5&style=for-the-badge" alt="Latest Version"></a>
 
 ### Introduction
-> This is the first-year final project of <span style="color: red;">V</span><span style="color: yellow;">K</span><span style="color: Blue;">U</span> students in Vietnam.
+> This is the first-year final project of a <span style="color: red;">V</span><span style="color: yellow;">K</span><span style="color: Blue;">U</span> students in Vietnam.
 
 This is an online chess game project written in JavaFX. It allows two players to connect to each other over a LAN network and play chess. The project utilizes a MySQL database to store user information and match history.
 
