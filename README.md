@@ -7,6 +7,17 @@
 
 This is an online chess game project written in JavaFX. It allows two players to connect to each other over a LAN network and play chess. The project utilizes a MySQL database to store user information and match history.
 
+<p align="center">
+
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/login.png?raw=true" alt="Login">
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/home.png?raw=true" alt="home">
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/matching.png?raw=true" alt="matching">
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/gameUI.png?raw=true" alt="gameUI">
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/castle.png?raw=true" alt="castle">
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/promotion.png?raw=true" alt="promotion">
+<img src="https://github.com/Khang-23ITB093/OnlineChessGame/blob/main/Image/endgame.png?raw=true" alt="endgame">
+</p>
+
 ### Requirements
 
 * Java Development Kit (JDK) 21+
