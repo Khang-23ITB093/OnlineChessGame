@@ -1,4 +1,5 @@
 package org.example.onlinechessgame.model.client;
+import org.example.onlinechessgame.ChessApp;
 import org.example.onlinechessgame.Tile;
 import org.example.onlinechessgame.controllers.ChessBoardController;
 import org.example.onlinechessgame.controllers.HomeController;
@@ -6,15 +7,18 @@ import org.example.onlinechessgame.controllers.LoginController;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.Move;
 import org.example.onlinechessgame.util.QuickLoginUtil;
+
+import javax.net.ssl.*;
 import java.io.*;
-import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 
 public class Client {
     private String serverAddress;
     private int serverPort;
-    private Socket socket;
+    private SSLSocket socket; // Sử dụng SSLSocket
+    private SSLContext sslContext;
     private ObjectOutputStream oos;
     private ChessBoardController controller;
     private LoginController loginController;
@@ -24,7 +28,7 @@ public class Client {
     //Xử lý kết nối với server với đăng nhập, đăng ký, quên mật khẩu
     public Client(String serverAddress, int serverPort, LoginController loginController) {
         this.serverAddress = serverAddress;
-//        this.serverAddress = "localhost";
+//        this.serverAddress = "192.168.1.130";
         this.serverPort = serverPort;
         this.loginController = loginController;
     }
@@ -43,12 +47,29 @@ public class Client {
         this.controller = controller;
     }
 
-    public void connectToServer() throws IOException {
-        socket = new Socket(serverAddress, serverPort);
-        //  tạo luồng gửi/nhận dữ liệu với server ...
+    public void connectToServer() throws Exception {
+        sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, getTrustManagers(), null);
+
+        SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+        socket = (SSLSocket) sslSocketFactory.createSocket(serverAddress, serverPort);
+
         oos = new ObjectOutputStream(socket.getOutputStream());
         new Thread(new ListenHandler(socket, this, loginController)).start();
     }
+
+    private TrustManager[] getTrustManagers() throws Exception {
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        try (FileInputStream trustStoreFis = new FileInputStream(Paths.get(ChessApp.class.getResource("/org/example/onlinechessgame/Certificate/client.truststore").toURI()).toString())) {
+            trustStore.load(trustStoreFis, "chessgame".toCharArray());
+        }
+
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(trustStore);
+
+        return trustManagerFactory.getTrustManagers();
+    }
+
 
     public void requestMatchmaking() throws IOException {
         // ... gửi yêu cầu ghép đấu đến server ...

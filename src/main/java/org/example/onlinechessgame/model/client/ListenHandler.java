@@ -113,7 +113,7 @@ public class ListenHandler implements Runnable {
 
                         case QUICK_LOGIN_FAILED:
                             System.out.println("Quick login failed!");
-                            loginController.loginFailed();
+                            Platform.runLater(() -> loginController.loginFailed());
                             break;
                         case REGISTER:
                             System.out.println("Register successful!");

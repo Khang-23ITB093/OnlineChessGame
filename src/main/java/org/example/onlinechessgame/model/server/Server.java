@@ -1,12 +1,15 @@
 package org.example.onlinechessgame.model.server;
 
+import org.example.onlinechessgame.ChessApp;
 import org.example.onlinechessgame.model.Message;
 import org.example.onlinechessgame.model.User;
 import org.example.onlinechessgame.util.ServerDatabaseHandler;
 
-import java.io.IOException;
-import java.net.ServerSocket;
+import javax.net.ssl.*;
+import java.io.FileInputStream;
 import java.net.Socket;
+import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,32 +17,62 @@ import java.util.Queue;
 
 public class Server {
     private static final int PORT = 12345;
-    private ServerSocket serverSocket;
+    private SSLServerSocket serverSocket; // Sử dụng SSLServerSocket
     private List<ClientHandler> clients = new ArrayList<>();
     private Queue<ClientHandler> waitingPlayers = new LinkedList<>();
     private ServerDatabaseHandler serverDatabaseHandler = new ServerDatabaseHandler();
     private List<ClientHandler> rematchRequests = new ArrayList<>();
-
+    private SSLContext sslContext;
     public static void main(String[] args) {
         new Server().start();
     }
 
     public void start() {
         try {
-            serverSocket = new ServerSocket(PORT);
-            System.out.println("Server started on port " + PORT);
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(getKeyManagers(), null, null);
+
+            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+            serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(PORT);
+
+            System.out.println("Secure server started on port " + PORT);
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                System.out.println("New client connected" + socket.getInetAddress());
+                System.out.println("New client connected: " + socket.getInetAddress());
                 ClientHandler clientHandler = new ClientHandler(this, socket);
                 clients.add(clientHandler);
                 new Thread(clientHandler).start();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    private KeyManager[] getKeyManagers() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        try (FileInputStream keyStoreFis = new FileInputStream(Paths.get(ChessApp.class.getResource("/org/example/onlinechessgame/Certificate/server.keystore").toURI()).toString())) {
+            keyStore.load(keyStoreFis, "chessgame".toCharArray()); // Mật khẩu của keystore
+        }
+
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, "chessgame".toCharArray());
+
+        return keyManagerFactory.getKeyManagers();
+    }
+
+//    // Tạo TrustManager để chấp nhận chứng chỉ client (optional, cho xác thực hai chiều)
+//    private TrustManager[] getTrustManagers() throws Exception {
+//        KeyStore trustStore = KeyStore.getInstance("JKS");
+//        try (FileInputStream trustStoreFis = new FileInputStream("server.truststore")) {
+//            trustStore.load(trustStoreFis, "password".toCharArray());
+//        }
+//
+//        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+//        trustManagerFactory.init(trustStore);
+//
+//        return trustManagerFactory.getTrustManagers();
+//    }
 
     public synchronized void addWaitingPlayer(ClientHandler clientHandler) throws InterruptedException {
         waitingPlayers.add(clientHandler);
